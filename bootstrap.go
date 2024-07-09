@@ -1,43 +1,40 @@
 package go_logger
 
 import (
+	"fmt"
 	"net/url"
 	"strconv"
+	"time"
 
+	rotateloggers "github.com/lestrrat-go/file-rotatelogs"
 	"go.uber.org/zap"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 func init() {
-	zap.RegisterSink(Lumberjack, func(url *url.URL) (zap.Sink, error) {
+
+	fmt.Println("init")
+	if err := zap.RegisterSink(Lumberjack, func(url *url.URL) (zap.Sink, error) {
 		query := url.Query()
-		var (
-			fileName   = "./logs/sdk.log"
-			maxSize    = 5
-			maxBackups = 7
-			maxAge     = 30
-			compress   = true
-			localtime  = true
-		)
-		if query.Has("filename") {
-			fileName = query.Get("filename")
+		if query.Has("fileName") {
+			fileName = query.Get("fileName")
 		}
-		if query.Has("maxsize") {
-			atoi, err := strconv.Atoi(query.Get("maxsize"))
+		if query.Has("maxSize") {
+			maxsize, err := strconv.Atoi(query.Get("maxSize"))
 			if err == nil {
-				maxSize = atoi
+				maxSize = maxsize
 			}
 		}
-		if query.Has("maxbackups") {
-			atoi, err := strconv.Atoi(query.Get("maxbackups"))
+		if query.Has("maxBackups") {
+			backups, err := strconv.Atoi(query.Get("maxBackups"))
 			if err == nil {
-				maxBackups = atoi
+				maxBackups = backups
 			}
 		}
-		if query.Has("maxage") {
-			atoi, err := strconv.Atoi(query.Get("maxage"))
+		if query.Has("maxAge") {
+			mage, err := strconv.Atoi(query.Get("maxAge"))
 			if err == nil {
-				maxAge = atoi
+				maxAge = mage
 			}
 		}
 		if query.Has("compress") {
@@ -62,7 +59,60 @@ func init() {
 			Compress:   compress,
 			LocalTime:  localtime,
 		}
-
 		return NewLumberjack(hook), nil
-	})
+	}); err != nil {
+		panic(err)
+	}
+
+	if err := zap.RegisterSink(RotateLogs, func(url *url.URL) (zap.Sink, error) {
+		query := url.Query()
+
+		if query.Has("fileName") {
+			rfileName = query.Get("fileName")
+			baseName = rfileName[:len(fileName)-len(".log")]
+			rfileName = baseName + "_%Y-%m-%d %H:%M:%S" + ".log"
+			baseName = baseName + ".log"
+		}
+		if query.Has("rotationTime") {
+			rotationDurationStr := query.Get("rotationTime")
+			rotationDuration, err := time.ParseDuration(rotationDurationStr)
+			if err == nil {
+				rotationTime = rotationDuration
+			}
+		}
+		if query.Has("maxAge") {
+			maxAgeDurationStr := query.Get("maxAge")
+			maxAgeDuration, err := time.ParseDuration(maxAgeDurationStr)
+			if err == nil {
+				rmaxAge = maxAgeDuration
+			}
+		}
+
+		if query.Has("localtime") {
+
+			if query.Get("localtime") == "true" {
+				rlocaltime = time.Local
+				rclock = rotateloggers.Local
+			} else {
+				rlocaltime = time.UTC
+				rclock = rotateloggers.UTC
+			}
+
+		}
+
+		logs, err := rotateloggers.New(
+			rfileName,
+			rotateloggers.WithLinkName(baseName),
+			rotateloggers.WithMaxAge(rmaxAge),
+			rotateloggers.WithRotationTime(rotationTime),
+			rotateloggers.WithLocation(rlocaltime),
+			rotateloggers.WithClock(rclock),
+		)
+		if err != nil {
+			return nil, err
+		}
+		return NewRotatelog(logs), nil
+	}); err != nil {
+		panic(err)
+	}
 }

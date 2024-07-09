@@ -6,11 +6,6 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-const (
-	Lumberjack         = "lumberjack"
-	lumberjackTemplate = "lumberjack:?fileName={{fileName}}&maxSize=%v&maxAge=%v&maxBackups=%v&compress=%v"
-)
-
 type LumberjackSink struct {
 	*lumberjack.Logger
 }
