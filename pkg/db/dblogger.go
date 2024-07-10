@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"runtime"
@@ -22,10 +23,16 @@ type Logger struct {
 	ParameterizedQueries      bool
 }
 
+func (l *Logger) String() string {
+	bytes, _ := json.Marshal(l)
+
+	return string(bytes)
+}
+
 func (l *Logger) LogMode(level gormlogger.LogLevel) gormlogger.Interface {
 	newLogger := *l
 	newLogger.LogLevel = level
-	return l
+	return &newLogger
 }
 
 func (l *Logger) Info(ctx context.Context, msg string, data ...interface{}) {
@@ -56,6 +63,7 @@ func (l *Logger) Trace(ctx context.Context, begin time.Time, fc func() (sql stri
 	logger := l.logger(ctx)
 	switch {
 	case err != nil && l.LogLevel >= gormlogger.Error && (!errors.Is(err, gormlogger.ErrRecordNotFound) || !l.IgnoreRecordNotFoundError):
+		fmt.Println("err != nil && l.LogLevel >= gormlogger.Error && (!errors.Is(err, gormlogger.ErrRecordNotFound) || !l.IgnoreRecordNotFoundError)")
 		sql, rows := fc()
 		if rows == -1 {
 			logger.Sugar().Errorf("\n执行时间: %s \n影响行数: %v \n执行错误: %s \n执行语句: %s", elapsedStr, rows, sql, err)
@@ -63,6 +71,7 @@ func (l *Logger) Trace(ctx context.Context, begin time.Time, fc func() (sql stri
 			logger.Sugar().Errorf("\n执行时间 %s \n影响行数: %v \n执行错误: %s \n执行语句: %s", elapsedStr, rows, sql, err)
 		}
 	case elapsed > l.SlowThreshold && l.SlowThreshold != 0 && l.LogLevel >= gormlogger.Warn:
+		fmt.Println("elapsed > l.SlowThreshold && l.SlowThreshold != 0 && l.LogLevel >= gormlogger.Warn")
 		sql, rows := fc()
 		slowLog := fmt.Sprintf("SLOW SQL >= %v", l.SlowThreshold)
 		if rows == -1 {
@@ -71,16 +80,17 @@ func (l *Logger) Trace(ctx context.Context, begin time.Time, fc func() (sql stri
 			logger.Sugar().Warnf("\n执行时间 %s \n影响行数: %v \n慢SQL: %v \n执行语句: %s", elapsedStr, rows, slowLog, sql)
 		}
 	case l.LogLevel == gormlogger.Info:
+		fmt.Println("l.LogLevel == gormlogger.Info")
 		sql, rows := fc()
 		if rows == -1 {
-			logger.Sugar().Infof("\n执行时间 %s \n影响行数: %v \n执行语句: %s", elapsedStr, rows, sql)
+			logger.Sugar().Infof("\n==> 执行时间 %s \n==> 影响行数: %v \n==> 执行语句: %s", elapsedStr, rows, sql)
 		} else {
-			logger.Sugar().Infof("\n执行时间 %s \n影响行数: %v \n执行语句: %s", elapsedStr, rows, sql)
+			logger.Sugar().Infof("\n==> 执行时间 %s \n==> 影响行数: %v \n==> 执行语句: %s", elapsedStr, rows, sql)
 		}
 	}
 }
 
-func NewDevelopDBLogger(config *Config) gormlogger.Interface {
+func NewDevelopDBLogger(config Config) gormlogger.Interface {
 	return &Logger{
 		ZapLogger:                 config.Logger,
 		LogLevel:                  gormlogger.Error,
@@ -91,7 +101,7 @@ func NewDevelopDBLogger(config *Config) gormlogger.Interface {
 	}
 }
 
-func NewProductionDBLogger(config *Config) gormlogger.Interface {
+func NewProductionDBLogger(config Config) gormlogger.Interface {
 	return &Logger{
 		ZapLogger:                 config.Logger,
 		LogLevel:                  gormlogger.Info,

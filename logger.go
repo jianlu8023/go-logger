@@ -8,6 +8,8 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
+
+	_ "github.com/jianlu8023/go-logger/internal/bootstrap"
 )
 
 type Logger struct {
@@ -16,7 +18,7 @@ type Logger struct {
 	RotateLogger     *rotateloggers.RotateLogs
 }
 
-func NewLogger(config *Config) *zap.Logger {
+func NewLogger(config *Config, options ...Option) *zap.Logger {
 	mode := config.Mode
 	var cores []zapcore.Core
 	var lv zapcore.Level
@@ -64,7 +66,9 @@ func NewLogger(config *Config) *zap.Logger {
 			}
 		case "date":
 			encoder := zapcore.NewConsoleEncoder(fileEncoderConfig)
-			writeSyncer, cancel, err := zap.Open(NewRotateLogURL(nil))
+			writeSyncer, cancel, err := zap.Open(NewRotateLogURL(&RotateLogConfig{
+				LocalTime: true,
+			}))
 
 			defer func() {
 				fmt.Println("date cancel")
@@ -89,8 +93,7 @@ func NewLogger(config *Config) *zap.Logger {
 	}
 }
 
-type Option func()
-
 func NewSugaredLogger(config *Config, options ...Option) *zap.SugaredLogger {
-	return NewLogger(config).Sugar()
+
+	return NewLogger(config, options...).Sugar()
 }

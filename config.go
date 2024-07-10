@@ -2,9 +2,8 @@ package go_logger
 
 import (
 	"fmt"
-	"time"
 
-	rotateloggers "github.com/lestrrat-go/file-rotatelogs"
+	"github.com/jianlu8023/go-logger/pkg/df"
 )
 
 type Config struct {
@@ -15,21 +14,6 @@ type Config struct {
 	LogLevel    string   `json:"logLevel,omitempty"`
 	DevelopMode bool     `json:"developMode,omitempty"`
 }
-
-const (
-	Lumberjack         = "lumberjack"
-	lumberjackTemplate = "lumberjack:?fileName=%v&maxSize=%v&maxAge=%v&maxBackups=%v&compress=%v&localtime=%v"
-)
-
-// lumberjack 使用
-var (
-	fileName   = "./logs/lumberjack.log"
-	maxSize    = 5
-	maxBackups = 7
-	maxAge     = 30
-	compress   = true
-	localtime  = true
-)
 
 type LumberjackConfig struct {
 	// 文件名
@@ -57,29 +41,15 @@ type LumberjackConfig struct {
 }
 
 func NewLumberjackUrl(config *LumberjackConfig) string {
-	dst := make([]byte, len(lumberjackTemplate))
-	copy(dst, lumberjackTemplate)
+	dst := make([]byte, len(df.LumberjackTemplate))
+	copy(dst, df.LumberjackTemplate)
 	if nil == config {
-		return fmt.Sprintf(string(dst), fileName, maxSize, maxAge, maxBackups, compress, localtime)
+		return fmt.Sprintf(string(dst), df.FileName, df.MaxSize, df.MaxAge, df.MaxBackups,
+			df.Compress, df.Localtime)
 	} else {
 		return fmt.Sprintf(string(dst), config.FileName, config.MaxSize, config.MaxAge, config.MaxBackups, config.Compress, config.Localtime)
 	}
 }
-
-const (
-	RotateLogs         = "rotatelogs"
-	rotateLogsTemplate = "rotatelogs:?fileName=%v&maxAge=%v&localtime=%v&rotationTime=%v"
-)
-
-// rotateLogs 使用
-var (
-	baseName     = "./logs/rotatelogs.log"
-	rfileName    = "./logs/rotatelogs_%Y-%m-%d %H:%M:%S.log"
-	rotationTime = 3 * time.Hour
-	rmaxAge      = 24 * time.Hour
-	rlocaltime   = time.Local
-	rclock       = rotateloggers.Local
-)
 
 type RotateLogConfig struct {
 	FileName     string `json:"fileName,omitempty"`
@@ -89,13 +59,42 @@ type RotateLogConfig struct {
 }
 
 func NewRotateLogURL(config *RotateLogConfig) string {
-	dst := make([]byte, len(rotateLogsTemplate))
-	copy(dst, rotateLogsTemplate)
+	dst := make([]byte, len(df.RotateLogsTemplate))
+	copy(dst, df.RotateLogsTemplate)
+	var (
+		baseName     interface{}
+		maxAge       interface{}
+		localtime    interface{}
+		rotationTime interface{}
+	)
 
 	if nil == config {
-		return fmt.Sprintf(string(dst), baseName, rmaxAge, rlocaltime, rotationTime)
+		baseName = df.BaseName
+		maxAge = df.RmaxAge
+		localtime = df.Rlocaltime
+		rotationTime = df.RotationTime
 	} else {
-
-		return fmt.Sprintf(string(dst), config.FileName, config.MaxAge, config.LocalTime, config.RotationTime)
+		if config.FileName != "" {
+			baseName = config.FileName
+		} else {
+			baseName = df.BaseName
+		}
+		if config.MaxAge != "" {
+			maxAge = config.MaxAge
+		} else {
+			maxAge = df.MaxAge
+		}
+		if config.LocalTime == true {
+			localtime = true
+		} else {
+			localtime = false
+		}
+		if config.RotationTime != "" {
+			rotationTime = config.RotationTime
+		} else {
+			rotationTime = df.RotationTime
+		}
 	}
+
+	return fmt.Sprintf(string(dst), baseName, maxAge, localtime, rotationTime)
 }

@@ -18,7 +18,6 @@ func TestNewLumberjackUrl(t *testing.T) {
 
 func TestNewRotateLogURL(t *testing.T) {
 	fmt.Println(NewRotateLogURL(&RotateLogConfig{
-		rfileName,
-		"30d", true, "3h",
+		LocalTime: true,
 	}))
 }

@@ -11,6 +11,7 @@ import (
 	"gorm.io/driver/mysql"
 
 	glog "github.com/jianlu8023/go-logger"
+	"github.com/jianlu8023/go-logger/pkg/db/model"
 )
 
 type TableInfo struct {
@@ -23,14 +24,14 @@ func TestNewDevelopDBLogger(t *testing.T) {
 	fmt.Println("--- TestNewDevelopDBLogger")
 	newLogger := glog.NewLogger(&glog.Config{
 		DevelopMode: false,
-		LogLevel:    "warn",
-		Mode:        []string{"stdout", "file"},
+		LogLevel:    "info",
+		Mode:        []string{"stdout", "file", "date"},
 	})
 	newLogger.Info("db info log")
-	logger := NewDevelopDBLogger(&Config{
+	logger := NewProductionDBLogger(Config{
 		Logger:                    newLogger,
-		LogLevel:                  gormlogger.Warn,
-		SlowThreshold:             100 * time.Millisecond,
+		SlowThreshold:             200 * time.Millisecond,
+		LogLevel:                  gormlogger.Info,
 		Colorful:                  false,
 		IgnoreRecordNotFoundError: false,
 		ParameterizedQueries:      false,
@@ -41,7 +42,7 @@ func TestNewDevelopDBLogger(t *testing.T) {
 		password = "123456"
 		host     = "192.168.58.110"
 		port     = "3306"
-		database = "upchain_dev"
+		database = "basic"
 	)
 	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%s?charset=utf8&parseTime=True&loc=Local", username, password, host, port, database)
 
@@ -54,6 +55,13 @@ func TestNewDevelopDBLogger(t *testing.T) {
 		return
 	}
 
+	err = db.AutoMigrate(&model.Basic{})
+	if err != nil {
+
+		fmt.Println("db migrate failed", err)
+		return
+	}
+
 	var version string
 	db.Raw("select version()").Scan(&version)
 	fmt.Println("mysql version is", version)
@@ -63,4 +71,20 @@ func TestNewDevelopDBLogger(t *testing.T) {
 	for _, info := range tableInfos {
 		fmt.Printf("表名: %s, 引擎: %s, 行数: %d\n", info.TableName, info.TableEngine, info.TableRows)
 	}
+
+	fmt.Println("----------------------------------")
+
+	var basic model.Basic
+	find := db.Model(&model.Basic{}).Where(model.Basic{
+		Uid: 1,
+	}).First(&basic)
+
+	if find.Error != nil {
+
+		fmt.Println("find failed", find.Error)
+		return
+	}
+
+	fmt.Println("basic is", basic)
+
 }
