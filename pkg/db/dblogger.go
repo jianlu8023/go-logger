@@ -63,29 +63,30 @@ func (l *Logger) Trace(ctx context.Context, begin time.Time, fc func() (sql stri
 	logger := l.logger(ctx)
 	switch {
 	case err != nil && l.LogLevel >= gormlogger.Error && (!errors.Is(err, gormlogger.ErrRecordNotFound) || !l.IgnoreRecordNotFoundError):
-		fmt.Println("err != nil && l.LogLevel >= gormlogger.Error && (!errors.Is(err, gormlogger.ErrRecordNotFound) || !l.IgnoreRecordNotFoundError)")
 		sql, rows := fc()
 		if rows == -1 {
-			logger.Sugar().Errorf("\n执行时间: %s \n影响行数: %v \n执行错误: %s \n执行语句: %s", elapsedStr, rows, sql, err)
+			logger.Sugar().Errorf("\n==> 执行语句: %v \n==> 影响行数: %v \n==> 执行耗时: %v \n==> 执行错误: %v\n",
+				sql, rows, elapsedStr, err)
 		} else {
-			logger.Sugar().Errorf("\n执行时间 %s \n影响行数: %v \n执行错误: %s \n执行语句: %s", elapsedStr, rows, sql, err)
+			logger.Sugar().Errorf("\n==> 执行语句: %v \n==> 影响行数: %v \n==> 执行耗时: %v \n==> 执行错误: %v\n",
+				sql, rows, elapsedStr, err)
 		}
 	case elapsed > l.SlowThreshold && l.SlowThreshold != 0 && l.LogLevel >= gormlogger.Warn:
-		fmt.Println("elapsed > l.SlowThreshold && l.SlowThreshold != 0 && l.LogLevel >= gormlogger.Warn")
 		sql, rows := fc()
 		slowLog := fmt.Sprintf("SLOW SQL >= %v", l.SlowThreshold)
 		if rows == -1 {
-			logger.Sugar().Warnf("\n执行时间 %s \n影响行数: %v \n慢SQL: %v \n执行语句: %s", elapsedStr, rows, slowLog, sql)
+			logger.Sugar().Warnf("\n==> 执行语句 %v \n==> 影响行数: %v \n==> 慢SQL: %v \n==> 执行时间: %v\n",
+				sql, rows, slowLog, elapsedStr)
 		} else {
-			logger.Sugar().Warnf("\n执行时间 %s \n影响行数: %v \n慢SQL: %v \n执行语句: %s", elapsedStr, rows, slowLog, sql)
+			logger.Sugar().Warnf("\n==> 执行语句 %v \n==> 影响行数: %v \n==> 慢SQL: %v \n==> 执行时间: %v\n",
+				sql, rows, slowLog, elapsedStr)
 		}
 	case l.LogLevel == gormlogger.Info:
-		fmt.Println("l.LogLevel == gormlogger.Info")
 		sql, rows := fc()
 		if rows == -1 {
-			logger.Sugar().Infof("\n==> 执行时间 %s \n==> 影响行数: %v \n==> 执行语句: %s", elapsedStr, rows, sql)
+			logger.Sugar().Infof("\n==> 执行语句 %v \n==> 影响行数: %v \n==> 执行时间: %v\n", sql, rows, elapsedStr)
 		} else {
-			logger.Sugar().Infof("\n==> 执行时间 %s \n==> 影响行数: %v \n==> 执行语句: %s", elapsedStr, rows, sql)
+			logger.Sugar().Infof("\n==> 执行语句 %v \n==> 影响行数: %v \n==> 执行时间: %v\n", sql, rows, elapsedStr)
 		}
 	}
 }
