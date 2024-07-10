@@ -24,9 +24,9 @@ func TestNewDevelopDBLogger(t *testing.T) {
 		Logger:                    newLogger,
 		SlowThreshold:             200 * time.Millisecond,
 		LogLevel:                  gormlogger.Info,
-		Colorful:                  false,
+		Colorful:                  true,
 		IgnoreRecordNotFoundError: false,
-		ParameterizedQueries:      false,
+		ParameterizedQueries:      true,
 	})
 
 	var (
@@ -58,7 +58,7 @@ func TestNewDevelopDBLogger(t *testing.T) {
 	db.Raw("select version();").Scan(&version)
 	fmt.Println("mysql version is", version)
 
-	if err := db.Model(&model.Basic{}).Create(&model.Basic{
+	if err := db.Model(&model.Basic{}).FirstOrCreate(&model.Basic{
 		Name: "test",
 		Age:  18,
 		Sex:  0,

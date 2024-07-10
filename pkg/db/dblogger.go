@@ -37,56 +37,56 @@ func (l *Logger) LogMode(level gormlogger.LogLevel) gormlogger.Interface {
 
 func (l *Logger) Info(ctx context.Context, msg string, data ...interface{}) {
 	if l.LogLevel >= gormlogger.Info {
-		l.logger(ctx).Sugar().Info(msg, data)
+
+		l.logger(ctx).Sugar().Infof(msg, data...)
 	}
 }
 
 func (l *Logger) Warn(ctx context.Context, msg string, data ...interface{}) {
 	if l.LogLevel >= gormlogger.Warn {
-		l.logger(ctx).Sugar().Warn(msg, data)
+		l.logger(ctx).Sugar().Warnf(msg, data...)
 	}
 }
 
 func (l *Logger) Error(ctx context.Context, msg string, data ...interface{}) {
 	if l.LogLevel >= gormlogger.Error {
-		l.logger(ctx).Sugar().Error(msg, data)
+		l.logger(ctx).Sugar().Errorf(msg, data...)
 	}
 }
 
-func (l *Logger) Trace(ctx context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error) {
+func (l *Logger) Trace(ctx context.Context,
+	begin time.Time,
+	fc func() (sql string, rowsAffected int64),
+	err error) {
+
 	if l.LogLevel <= gormlogger.Silent {
 		return
 	}
 
 	elapsed := time.Since(begin)
 	elapsedStr := fmt.Sprintf("%.3fms", float64(elapsed.Nanoseconds())/1e6)
-	logger := l.logger(ctx)
 	switch {
 	case err != nil && l.LogLevel >= gormlogger.Error && (!errors.Is(err, gormlogger.ErrRecordNotFound) || !l.IgnoreRecordNotFoundError):
 		sql, rows := fc()
 		if rows == -1 {
-			logger.Sugar().Errorf("\n==> 执行语句: %v \n==> 影响行数: %v \n==> 执行耗时: %v \n==> 执行错误: %v\n",
-				sql, rows, elapsedStr, err)
+			l.Error(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 执行耗时: %v \n==> 执行错误: %v\n", sql, rows, elapsedStr, err)
 		} else {
-			logger.Sugar().Errorf("\n==> 执行语句: %v \n==> 影响行数: %v \n==> 执行耗时: %v \n==> 执行错误: %v\n",
-				sql, rows, elapsedStr, err)
+			l.Error(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 执行耗时: %v \n==> 执行错误: %v\n", sql, rows, elapsedStr, err)
 		}
 	case elapsed > l.SlowThreshold && l.SlowThreshold != 0 && l.LogLevel >= gormlogger.Warn:
 		sql, rows := fc()
 		slowLog := fmt.Sprintf("SLOW SQL >= %v", l.SlowThreshold)
 		if rows == -1 {
-			logger.Sugar().Warnf("\n==> 执行语句 %v \n==> 影响行数: %v \n==> 慢SQL: %v \n==> 执行时间: %v\n",
-				sql, rows, slowLog, elapsedStr)
+			l.Warn(ctx, "\n==> 执行语句 %v \n==> 影响行数: %v \n==> 慢SQL: %v \n==> 执行时间: %v\n", sql, rows, slowLog, elapsedStr)
 		} else {
-			logger.Sugar().Warnf("\n==> 执行语句 %v \n==> 影响行数: %v \n==> 慢SQL: %v \n==> 执行时间: %v\n",
-				sql, rows, slowLog, elapsedStr)
+			l.Warn(ctx, "\n==> 执行语句 %v \n==> 影响行数: %v \n==> 慢SQL: %v \n==> 执行时间: %v\n", sql, rows, slowLog, elapsedStr)
 		}
 	case l.LogLevel == gormlogger.Info:
 		sql, rows := fc()
 		if rows == -1 {
-			logger.Sugar().Infof("\n==> 执行语句 %v \n==> 影响行数: %v \n==> 执行时间: %v\n", sql, rows, elapsedStr)
+			l.Info(ctx, "\n==> 执行语句 %v \n==> 影响行数: %v \n==> 执行时间: %v\n", sql, rows, elapsedStr)
 		} else {
-			logger.Sugar().Infof("\n==> 执行语句 %v \n==> 影响行数: %v \n==> 执行时间: %v\n", sql, rows, elapsedStr)
+			l.Info(ctx, "\n==> 执行语句 %v \n==> 影响行数: %v \n==> 执行时间: %v\n", sql, rows, elapsedStr)
 		}
 	}
 }
