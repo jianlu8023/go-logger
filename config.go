@@ -7,12 +7,8 @@ import (
 )
 
 type Config struct {
-	// Mode file or date or stdout
-	// file use lumberjack
-	// date use rotatelogs
-	Mode        []string `json:"mode,omitempty"`
-	LogLevel    string   `json:"logLevel,omitempty"`
-	DevelopMode bool     `json:"developMode,omitempty"`
+	LogLevel    string `json:"logLevel,omitempty"`
+	DevelopMode bool   `json:"developMode,omitempty"`
 }
 
 type LumberjackConfig struct {

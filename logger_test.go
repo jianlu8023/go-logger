@@ -6,27 +6,43 @@ import (
 	"syscall"
 	"testing"
 	"time"
+
+	"go.uber.org/zap/zapcore"
 )
 
 func TestNewLogger(t *testing.T) {
 	logger := NewLogger(&Config{
-		Mode:        []string{"stdout", "file", "date"},
 		LogLevel:    "info",
 		DevelopMode: true,
-	})
+	}, WithLumberjack(&LumberjackConfig{
+		FileName: "./logs/test.log",
+	}), WithFileConfig(zapcore.EncoderConfig{
+		MessageKey:     "msg",
+		LevelKey:       "level",
+		TimeKey:        "time",
+		NameKey:        "logger",
+		CallerKey:      "caller",
+		StacktraceKey:  "stacktrace",
+		LineEnding:     zapcore.DefaultLineEnding,
+		EncodeLevel:    zapcore.LowercaseLevelEncoder,
+		EncodeTime:     zapcore.ISO8601TimeEncoder,
+		EncodeDuration: zapcore.SecondsDurationEncoder,
+		EncodeCaller:   zapcore.ShortCallerEncoder,
+	}))
 	logger.Info("info log")
 
 }
-
 func TestNewSugaredLogger(t *testing.T) {
 
 	logger := NewSugaredLogger(&Config{
-		Mode: []string{
-			"stdout", "file", "date",
-		},
 		LogLevel:    "info",
 		DevelopMode: false,
-	})
+	}, WithRotateLog(&RotateLogConfig{
+		FileName:  "./logs/rotatelog-test.log",
+		LocalTime: true,
+	}), WithLumberjack(&LumberjackConfig{
+		FileName: "./logs/lumberjack-test.log",
+	}))
 
 	ticker := time.NewTicker(time.Second * 10)
 
@@ -45,7 +61,7 @@ func TestNewSugaredLogger(t *testing.T) {
 					Age:  18,
 				})
 
-				// logger.Errorf("error %s", errors.New("test error"))
+				// logger.Errorf("_error %s", errors.New("test _error"))
 			}
 		}
 	}()
@@ -58,5 +74,4 @@ func TestNewSugaredLogger(t *testing.T) {
 		ticker.Stop()
 		logger.Info("stop")
 	}
-
 }

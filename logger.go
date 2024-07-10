@@ -1,7 +1,6 @@
 package go_logger
 
 import (
-	"fmt"
 	"os"
 
 	rotateloggers "github.com/lestrrat-go/file-rotatelogs"
@@ -18,42 +17,54 @@ type Logger struct {
 	RotateLogger     *rotateloggers.RotateLogs
 }
 
-func NewLogger(config *Config, options ...Option) *zap.Logger {
-	mode := config.Mode
-	var cores []zapcore.Core
-	var lv zapcore.Level
+const (
+	warn   = "warn"
+	info   = "info"
+	debug  = "debug"
+	_error = "error"
+	fatal  = "fatal"
+	_panic = "panic"
+)
 
-	switch config.LogLevel {
-	case "info":
-		lv = zapcore.InfoLevel
-	case "debug":
-		lv = zapcore.DebugLevel
-	case "warn":
-		lv = zapcore.WarnLevel
-	case "error":
-		lv = zapcore.ErrorLevel
-	case "panic":
-		lv = zapcore.PanicLevel
-	case "fatal":
-		lv = zapcore.FatalLevel
-	default:
-		lv = zapcore.InfoLevel
+func NewLogger(config *Config, options ...Option) *zap.Logger {
+
+	var (
+		cores []zapcore.Core
+		// consoleConfig 默认是consoleEncoderConfig
+		consoleConfig = consoleEncoderConfig
+		// fileConfig 默认是fileEncoderConfig
+		fileConfig = fileEncoderConfig
+	)
+
+	lv := logLevel(config.LogLevel)
+
+	// 判断options 中实有option的name是consoleEncoderConfigKey
+	if ok, opt := containsOptions(options, consoleEncoderConfigKey); ok {
+		consoleConfig = opt.Value().(zapcore.EncoderConfig)
+
 	}
-	for _, m := range mode {
-		switch m {
-		case "stdout":
-			encoder := zapcore.NewConsoleEncoder(consoleEncoderConfig)
-			core := zapcore.NewCore(encoder,
-				zapcore.NewMultiWriteSyncer(
-					zapcore.AddSync(os.Stdout)),
-				lv,
-			)
-			cores = append(cores, core)
-		case "file":
-			encoder := zapcore.NewConsoleEncoder(fileEncoderConfig)
-			writeSyncer, cancel, err := zap.Open(NewLumberjackUrl(nil))
+
+	if ok, opt := containsOptions(options, fileEncoderConfigKey); ok {
+		fileConfig = opt.Value().(zapcore.EncoderConfig)
+	}
+
+	{
+		// default console 输出
+		encoder := zapcore.NewConsoleEncoder(consoleConfig)
+		core := zapcore.NewCore(encoder,
+			zapcore.NewMultiWriteSyncer(
+				zapcore.AddSync(os.Stdout)),
+			lv,
+		)
+		cores = append(cores, core)
+	}
+	for _, option := range options {
+		switch option.Name() {
+		case lumberjackKey:
+			lumberjackConfig := option.Value().(*LumberjackConfig)
+			encoder := zapcore.NewConsoleEncoder(fileConfig)
+			writeSyncer, cancel, err := zap.Open(NewLumberjackUrl(lumberjackConfig))
 			defer func() {
-				fmt.Println("file cancel")
 				cancel()
 			}()
 			if err == nil {
@@ -64,14 +75,11 @@ func NewLogger(config *Config, options ...Option) *zap.Logger {
 				)
 				cores = append(cores, core)
 			}
-		case "date":
-			encoder := zapcore.NewConsoleEncoder(fileEncoderConfig)
-			writeSyncer, cancel, err := zap.Open(NewRotateLogURL(&RotateLogConfig{
-				LocalTime: true,
-			}))
-
+		case rotatelogKey:
+			logConfig := option.Value().(*RotateLogConfig)
+			encoder := zapcore.NewConsoleEncoder(fileConfig)
+			writeSyncer, cancel, err := zap.Open(NewRotateLogURL(logConfig))
 			defer func() {
-				fmt.Println("date cancel")
 				cancel()
 			}()
 			if err == nil {
@@ -94,6 +102,24 @@ func NewLogger(config *Config, options ...Option) *zap.Logger {
 }
 
 func NewSugaredLogger(config *Config, options ...Option) *zap.SugaredLogger {
-
 	return NewLogger(config, options...).Sugar()
+}
+
+func logLevel(level string) zapcore.Level {
+	switch level {
+	case info:
+		return zapcore.InfoLevel
+	case debug:
+		return zapcore.DebugLevel
+	case warn:
+		return zapcore.WarnLevel
+	case _error:
+		return zapcore.ErrorLevel
+	case _panic:
+		return zapcore.PanicLevel
+	case fatal:
+		return zapcore.FatalLevel
+	default:
+		return zapcore.InfoLevel
+	}
 }
