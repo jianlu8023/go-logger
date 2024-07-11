@@ -11,6 +11,8 @@ const (
 	rotatelogKey            = "rotatelog"
 	consoleEncoderConfigKey = "consoleEncoderConfig"
 	fileEncoderConfigKey    = "fileEncoderConfig"
+	jsonFormatKey           = "jsonFormat"
+	consoleFormatKey        = "consoleFormat"
 )
 
 func WithLumberjack(config *LumberjackConfig) Option {
@@ -40,4 +42,12 @@ func containsOptions(options []Option, key string) (bool, Option) {
 		}
 	}
 	return exists, o
+}
+
+func WithJSONFormat() Option {
+	return option.NewOption(jsonFormatKey, nil)
+}
+
+func WithConsoleFormat() Option {
+	return option.NewOption(consoleFormatKey, nil)
 }

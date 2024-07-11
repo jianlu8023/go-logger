@@ -11,24 +11,48 @@ import (
 )
 
 func TestNewLogger(t *testing.T) {
-	logger := NewLogger(&Config{
-		LogLevel:    "info",
-		DevelopMode: true,
-	}, WithLumberjack(&LumberjackConfig{
-		FileName: "./logs/test.log",
-	}), WithFileConfig(zapcore.EncoderConfig{
-		MessageKey:     "msg",
-		LevelKey:       "level",
-		TimeKey:        "time",
-		NameKey:        "logger",
-		CallerKey:      "caller",
-		StacktraceKey:  "stacktrace",
-		LineEnding:     zapcore.DefaultLineEnding,
-		EncodeLevel:    zapcore.LowercaseLevelEncoder,
-		EncodeTime:     zapcore.ISO8601TimeEncoder,
-		EncodeDuration: zapcore.SecondsDurationEncoder,
-		EncodeCaller:   zapcore.ShortCallerEncoder,
-	}))
+	logger := NewLogger(
+		&Config{
+			LogLevel:    "info",
+			DevelopMode: true,
+		},
+		WithRotateLog(&RotateLogConfig{
+			FileName: "./logs/rotatelog-db-test.log",
+		}),
+		WithLumberjack(&LumberjackConfig{
+			FileName: "./logs/lumberjack-db-test.log",
+		}),
+		WithFileConfig(zapcore.EncoderConfig{
+			MessageKey:    "msg",
+			LevelKey:      "level",
+			TimeKey:       "time",
+			NameKey:       "logger",
+			CallerKey:     "caller",
+			StacktraceKey: "stacktrace",
+			LineEnding:    zapcore.DefaultLineEnding,
+			EncodeLevel:   zapcore.LowercaseLevelEncoder,
+			EncodeTime: func(date time.Time, encoder zapcore.PrimitiveArrayEncoder) {
+				encoder.AppendString(date.Format("2006-01-02 15:04:05.00000000"))
+			},
+			EncodeDuration: zapcore.SecondsDurationEncoder,
+			EncodeCaller:   zapcore.ShortCallerEncoder,
+		}),
+		WithConsoleConfig(zapcore.EncoderConfig{
+			MessageKey:    "msg",
+			LevelKey:      "level",
+			TimeKey:       "time",
+			NameKey:       "logger",
+			CallerKey:     "caller",
+			StacktraceKey: "stacktrace",
+			LineEnding:    zapcore.DefaultLineEnding,
+			EncodeLevel:   zapcore.LowercaseLevelEncoder,
+			EncodeTime: func(date time.Time, encoder zapcore.PrimitiveArrayEncoder) {
+				encoder.AppendString(date.Format("2006-01-02 15:04:05.00000000"))
+			},
+			EncodeDuration: zapcore.SecondsDurationEncoder,
+			EncodeCaller:   zapcore.ShortCallerEncoder,
+		}),
+	)
 	logger.Info("info log")
 
 }

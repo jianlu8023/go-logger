@@ -26,5 +26,6 @@ func (c *Config) String() string {
 const ctxLoggerKey = "zapLogger"
 
 var (
-	gormPackage = filepath.Join("gorm.io", "gorm")
+	gormPackage    = filepath.Join("gorm.io", "gorm")
+	zapgormPackage = filepath.Join("moul.io", "zapgorm2")
 )

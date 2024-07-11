@@ -37,7 +37,6 @@ func (l *Logger) LogMode(level gormlogger.LogLevel) gormlogger.Interface {
 
 func (l *Logger) Info(ctx context.Context, msg string, data ...interface{}) {
 	if l.LogLevel >= gormlogger.Info {
-
 		l.logger(ctx).Sugar().Infof(msg, data...)
 	}
 }
@@ -131,6 +130,7 @@ func (l *Logger) logger(ctx context.Context) *zap.Logger {
 		case !ok:
 		case strings.HasSuffix(file, "_test.go"):
 		case strings.Contains(file, gormPackage):
+		case strings.Contains(file, zapgormPackage):
 		default:
 			return logger.WithOptions(zap.AddCallerSkip(i - 1))
 		}
