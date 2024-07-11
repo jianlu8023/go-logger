@@ -31,6 +31,14 @@ func WithFileConfig(config zapcore.EncoderConfig) Option {
 	return option.NewOption(fileEncoderConfigKey, config)
 }
 
+func WithJSONFormat() Option {
+	return option.NewOption(jsonFormatKey, nil)
+}
+
+func WithConsoleFormat() Option {
+	return option.NewOption(consoleFormatKey, nil)
+}
+
 func containsOptions(options []Option, key string) (bool, Option) {
 	var o Option
 	exists := false
@@ -44,10 +52,30 @@ func containsOptions(options []Option, key string) (bool, Option) {
 	return exists, o
 }
 
-func WithJSONFormat() Option {
-	return option.NewOption(jsonFormatKey, nil)
-}
+func checkFormat(options []Option) (bool, Option) {
+	var jsonExists, consoleExists bool
+	var jsonOpt, consoleOpt Option
 
-func WithConsoleFormat() Option {
-	return option.NewOption(consoleFormatKey, nil)
+	for _, opt := range options {
+		if opt.Name() == jsonFormatKey {
+			jsonExists = true
+			jsonOpt = opt
+		} else if opt.Name() == consoleFormatKey {
+			consoleExists = true
+			consoleOpt = opt
+		}
+	}
+
+	if jsonExists && consoleExists {
+		// 如果两种格式都存在，返回默认的控制台格式
+		return true, consoleOpt
+	} else if jsonExists {
+		return false, jsonOpt
+	} else if consoleExists {
+		return false, consoleOpt
+	} else {
+		// 如果都不存在，返回默认的控制台格式
+		return false, WithConsoleFormat()
+	}
+
 }

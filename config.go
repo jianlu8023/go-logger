@@ -36,15 +36,47 @@ type LumberjackConfig struct {
 	Localtime bool `json:"localtime"`
 }
 
+func LumberjackDefaultConfig() *LumberjackConfig {
+	return &LumberjackConfig{
+		FileName:   df.FileName,
+		MaxSize:    df.MaxSize,
+		MaxAge:     df.MaxAge,
+		MaxBackups: df.MaxBackups,
+		Compress:   df.Compress,
+		Localtime:  df.Localtime,
+	}
+}
+
 func NewLumberjackUrl(config *LumberjackConfig) string {
 	dst := make([]byte, len(df.LumberjackTemplate))
 	copy(dst, df.LumberjackTemplate)
-	if nil == config {
-		return fmt.Sprintf(string(dst), df.FileName, df.MaxSize, df.MaxAge, df.MaxBackups,
-			df.Compress, df.Localtime)
-	} else {
-		return fmt.Sprintf(string(dst), config.FileName, config.MaxSize, config.MaxAge, config.MaxBackups, config.Compress, config.Localtime)
+	var (
+		fileName   = df.FileName
+		maxSize    = df.MaxSize
+		maxAge     = df.MaxAge
+		maxBackups = df.MaxBackups
+		compress   = df.Compress
+		localtime  = df.Localtime
+	)
+	if nil != config {
+		if config.FileName != "" {
+			fileName = config.FileName
+		}
+		if config.MaxSize != 0 {
+			maxSize = config.MaxSize
+		}
+		if config.MaxAge != 0 {
+			maxAge = config.MaxAge
+		}
+		if config.MaxBackups != 0 {
+			maxBackups = config.MaxBackups
+		}
+		compress = config.Compress
+		localtime = config.Localtime
 	}
+
+	return fmt.Sprintf(string(dst), fileName, maxSize, maxAge, maxBackups,
+		compress, localtime)
 }
 
 type RotateLogConfig struct {
@@ -52,6 +84,15 @@ type RotateLogConfig struct {
 	MaxAge       string `json:"maxAge,omitempty"`
 	LocalTime    bool   `json:"localTime,omitempty"`
 	RotationTime string `json:"rotationTime,omitempty"`
+}
+
+func RotateLogDefaultConfig() *RotateLogConfig {
+	return &RotateLogConfig{
+		FileName:     df.BaseName,
+		MaxAge:       df.RmaxAge.String(),
+		LocalTime:    false,
+		RotationTime: df.RotationTime.String(),
+	}
 }
 
 func NewRotateLogURL(config *RotateLogConfig) string {
