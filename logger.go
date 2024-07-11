@@ -3,18 +3,10 @@ package go_logger
 import (
 	"errors"
 
-	rotateloggers "github.com/lestrrat-go/file-rotatelogs"
 	"go.uber.org/zap"
-	"gopkg.in/natefinch/lumberjack.v2"
 
 	_ "github.com/jianlu8023/go-logger/internal/bootstrap"
 )
-
-type Logger struct {
-	ZapLogger        *zap.Logger
-	LumberjackLogger *lumberjack.Logger
-	RotateLogger     *rotateloggers.RotateLogs
-}
 
 const (
 	warn   = "warn"

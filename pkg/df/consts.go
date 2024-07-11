@@ -28,10 +28,10 @@ const (
 
 // rotateLogs 使用
 var (
-	BaseName     = "./logs/rotatelogs.log"
-	RfileName    = "./logs/rotatelogs_%Y-%m-%d %H:%M:%S.log"
-	RotationTime = 3 * time.Hour
-	RmaxAge      = 24 * time.Hour
-	Rlocaltime   = time.UTC
-	Rclock       = rotateloggers.Local
+	BaseName     = "./logs/rotatelogs.log"                   // 软连接地址
+	RfileName    = "./logs/rotatelogs_%Y-%m-%d %H:%M:%S.log" // 日志文件记录格式
+	RotationTime = 3 * time.Hour                             // 日志切割时间间隔
+	RmaxAge      = 24 * time.Hour                            // 日志文件最大保留时间
+	Rlocaltime   = time.UTC                                  // 是否使用本地时间
+	Rclock       = rotateloggers.UTC                         // clock时间
 )

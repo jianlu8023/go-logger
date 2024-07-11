@@ -91,7 +91,7 @@ func init() {
 
 		if query.Has("localtime") {
 
-			if query.Get("localtime") == "true" {
+			if query.Get("localtime") == "Local" {
 				df.Rlocaltime = time.Local
 				df.Rclock = rotateloggers.Local
 			} else {

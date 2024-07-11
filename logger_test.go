@@ -18,12 +18,12 @@ func TestNewLogger(t *testing.T) {
 			DevelopMode: true,
 		},
 		WithRotateLog(&RotateLogConfig{
-			FileName:  "./logs/rotatelog-db-test.log",
+			FileName:  "./logs/rotatelog-logger.log",
 			LocalTime: true,
 		}),
 		WithRotateLog(RotateLogDefaultConfig()),
 		WithLumberjack(&LumberjackConfig{
-			FileName: "./logs/lumberjack-db-test.log",
+			FileName: "./logs/lumberjack-logger.log",
 		}),
 		WithLumberjack(LumberjackDefaultConfig()),
 		WithFileConfig(zapcore.EncoderConfig{
@@ -56,7 +56,7 @@ func TestNewLogger(t *testing.T) {
 			EncodeDuration: zapcore.SecondsDurationEncoder,
 			EncodeCaller:   zapcore.ShortCallerEncoder,
 		}),
-		WithJSONFormat(),
+		WithConsoleFormat(),
 	)
 
 	ticker := time.NewTicker(time.Second * 1)
@@ -87,13 +87,14 @@ func TestNewSugaredLogger(t *testing.T) {
 		LogLevel:    "info",
 		DevelopMode: false,
 	}, WithRotateLog(&RotateLogConfig{
-		FileName:  "./logs/rotatelog-test.log",
+		FileName:  "./logs/rotatelog-sugared.log",
 		LocalTime: true,
 	}), WithLumberjack(&LumberjackConfig{
-		FileName: "./logs/lumberjack-test.log",
+		FileName:  "./logs/lumberjack-sugared.log",
+		Localtime: true,
 	}))
 
-	ticker := time.NewTicker(time.Second * 10)
+	ticker := time.NewTicker(time.Second * 1)
 
 	go func() {
 		for {

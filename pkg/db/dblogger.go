@@ -90,28 +90,6 @@ func (l *Logger) Trace(ctx context.Context,
 	}
 }
 
-func NewDevelopDBLogger(config Config) gormlogger.Interface {
-	return &Logger{
-		ZapLogger:                 config.Logger,
-		LogLevel:                  gormlogger.Error,
-		SlowThreshold:             config.SlowThreshold,
-		Colorful:                  config.Colorful,
-		IgnoreRecordNotFoundError: config.IgnoreRecordNotFoundError,
-		ParameterizedQueries:      config.ParameterizedQueries,
-	}
-}
-
-func NewProductionDBLogger(config Config) gormlogger.Interface {
-	return &Logger{
-		ZapLogger:                 config.Logger,
-		LogLevel:                  gormlogger.Info,
-		SlowThreshold:             config.SlowThreshold,
-		Colorful:                  config.Colorful,
-		IgnoreRecordNotFoundError: config.IgnoreRecordNotFoundError,
-		ParameterizedQueries:      config.ParameterizedQueries,
-	}
-}
-
 func (l *Logger) logger(ctx context.Context) *zap.Logger {
 	logger := l.ZapLogger
 	if ctx != nil {
@@ -136,4 +114,16 @@ func (l *Logger) logger(ctx context.Context) *zap.Logger {
 		}
 	}
 	return logger
+}
+
+func NewDBLogger(config Config) gormlogger.Interface {
+	level := dbMap[config.LogLevel]
+	return &Logger{
+		ZapLogger:                 config.Logger,
+		LogLevel:                  level,
+		SlowThreshold:             config.SlowThreshold,
+		Colorful:                  config.Colorful,
+		IgnoreRecordNotFoundError: config.IgnoreRecordNotFoundError,
+		ParameterizedQueries:      config.ParameterizedQueries,
+	}
 }
