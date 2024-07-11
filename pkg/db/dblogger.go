@@ -117,10 +117,9 @@ func (l *Logger) logger(ctx context.Context) *zap.Logger {
 }
 
 func NewDBLogger(config Config) *Logger {
-	level := dbMap[config.LogLevel]
 	return &Logger{
 		ZapLogger:                 config.Logger,
-		LogLevel:                  level,
+		LogLevel:                  config.LogLevel,
 		SlowThreshold:             config.SlowThreshold,
 		Colorful:                  config.Colorful,
 		IgnoreRecordNotFoundError: config.IgnoreRecordNotFoundError,
