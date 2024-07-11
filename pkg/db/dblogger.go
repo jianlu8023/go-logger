@@ -116,7 +116,7 @@ func (l *Logger) logger(ctx context.Context) *zap.Logger {
 	return logger
 }
 
-func NewDBLogger(config Config) gormlogger.Interface {
+func NewDBLogger(config Config) *Logger {
 	level := dbMap[config.LogLevel]
 	return &Logger{
 		ZapLogger:                 config.Logger,
