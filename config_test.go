@@ -13,7 +13,9 @@ func TestNewLumberjackUrl(t *testing.T) {
 
 func TestNewRotateLogURL(t *testing.T) {
 	fmt.Println(NewRotateLogURL(&RotateLogConfig{
-		LocalTime: true,
+		LocalTime:    false,
+		RotationTime: "4h",
+		MaxAge:       "30d",
 	}))
 }
 

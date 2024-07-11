@@ -2,6 +2,7 @@ package go_logger
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/jianlu8023/go-logger/pkg/df"
 )
@@ -99,39 +100,35 @@ func NewRotateLogURL(config *RotateLogConfig) string {
 	dst := make([]byte, len(df.RotateLogsTemplate))
 	copy(dst, df.RotateLogsTemplate)
 	var (
-		baseName     interface{}
-		maxAge       interface{}
-		localtime    interface{}
-		rotationTime interface{}
+		baseName     = df.BaseName
+		maxAge       = df.RmaxAge
+		localtime    = df.Rlocaltime
+		rotationTime = df.RotationTime
 	)
 
-	if nil == config {
-		baseName = df.BaseName
-		maxAge = df.RmaxAge
-		localtime = df.Rlocaltime
-		rotationTime = df.RotationTime
-	} else {
+	if nil != config {
 		if config.FileName != "" {
 			baseName = config.FileName
-		} else {
-			baseName = df.BaseName
 		}
 		if config.MaxAge != "" {
-			maxAge = config.MaxAge
-		} else {
-			maxAge = df.MaxAge
+			duration, err := time.ParseDuration(config.MaxAge)
+			if err == nil {
+				maxAge = duration
+			}
+			// maxAge = config.MaxAge
 		}
 		if config.LocalTime == true {
-			localtime = true
+			localtime = time.Local
 		} else {
-			localtime = false
+			localtime = time.UTC
 		}
 		if config.RotationTime != "" {
-			rotationTime = config.RotationTime
-		} else {
-			rotationTime = df.RotationTime
+			duration, err := time.ParseDuration(config.RotationTime)
+			if err == nil {
+				rotationTime = duration
+			}
+			// rotationTime = config.RotationTime
 		}
 	}
-
 	return fmt.Sprintf(string(dst), baseName, maxAge, localtime, rotationTime)
 }
