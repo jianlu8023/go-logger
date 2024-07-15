@@ -7,6 +7,7 @@ import (
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	gormlogger "gorm.io/gorm/logger"
 
 	glog "github.com/jianlu8023/go-logger"
 	"github.com/jianlu8023/go-logger/pkg/db/model"
@@ -31,7 +32,7 @@ func TestNewDBLogger(t *testing.T) {
 	logger := NewDBLogger(Config{
 		Logger:                    newLogger,
 		SlowThreshold:             200 * time.Millisecond,
-		LogLevel:                  Info,
+		LogLevel:                  gormlogger.Info,
 		Colorful:                  true,
 		IgnoreRecordNotFoundError: false,
 		ParameterizedQueries:      true,

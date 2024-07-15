@@ -11,6 +11,31 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+func TestNewLoggerWithNoFile(t *testing.T) {
+	logger := NewLogger(&Config{LogLevel: "info", DevelopMode: true})
+	ticker(logger)
+}
+
+func TestNewLoggerWithLumberJack(t *testing.T) {
+	logger := NewLogger(
+		&Config{
+			LogLevel:    "info",
+			DevelopMode: true,
+		},
+		WithLumberjack(&LumberjackConfig{
+			FileName:   "./logs/lumberjack-only-logger.log",
+			Localtime:  true,
+			Compress:   true,
+			MaxSize:    5,
+			MaxAge:     30,
+			MaxBackups: 7,
+		}),
+		WithLumberjack(LumberjackDefaultConfig()),
+	)
+	ticker(logger)
+
+}
+
 func TestNewLogger(t *testing.T) {
 	logger := NewLogger(
 		&Config{
@@ -58,27 +83,7 @@ func TestNewLogger(t *testing.T) {
 		}),
 		WithConsoleFormat(),
 	)
-
-	ticker := time.NewTicker(time.Second * 1)
-
-	go func() {
-		for {
-			select {
-
-			case <-ticker.C:
-				// logger.Info("info log")
-				logger.Info("info log", zap.Any("info", time.Now()))
-				logger.Warn("warn log", zap.Any("warn", time.Now()))
-			}
-		}
-	}()
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	select {
-	case <-quit:
-		ticker.Stop()
-		logger.Debug("stop logger ticker...")
-	}
+	ticker(logger)
 
 }
 func TestNewSugaredLogger(t *testing.T) {
@@ -94,6 +99,11 @@ func TestNewSugaredLogger(t *testing.T) {
 		Localtime: true,
 	}))
 
+	tickerSugared(logger)
+
+}
+
+func tickerSugared(logger *zap.SugaredLogger) {
 	ticker := time.NewTicker(time.Second * 1)
 
 	go func() {
@@ -110,7 +120,6 @@ func TestNewSugaredLogger(t *testing.T) {
 					Name: "test",
 					Age:  18,
 				})
-
 				// logger.Errorf("_error %s", errors.New("test _error"))
 			}
 		}
@@ -123,5 +132,26 @@ func TestNewSugaredLogger(t *testing.T) {
 	case <-quit:
 		ticker.Stop()
 		logger.Info("stop")
+	}
+}
+
+func ticker(log *zap.Logger) {
+	ticker := time.NewTicker(time.Second * 1)
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				// logger.Info("info log")
+				log.Info("info log", zap.Any("info", time.Now()))
+				log.Warn("warn log", zap.Any("warn", time.Now()))
+			}
+		}
+	}()
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	select {
+	case <-quit:
+		ticker.Stop()
+		log.Debug("stop logger ticker...")
 	}
 }

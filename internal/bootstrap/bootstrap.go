@@ -71,7 +71,8 @@ func init() {
 		if query.Has("fileName") {
 			df.RfileName = query.Get("fileName")
 			df.BaseName = df.RfileName[:len(df.RfileName)-len(".log")]
-			df.RfileName = df.BaseName + "_%Y-%m-%d %H:%M:%S" + ".log"
+			// _%Y-%m-%d %H:%M:%S
+			df.RfileName = df.BaseName + ".%Y-%m-%d-%H" + ".log"
 			df.BaseName = df.BaseName + ".log"
 		}
 		if query.Has("rotationTime") {
