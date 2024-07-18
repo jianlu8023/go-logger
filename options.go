@@ -13,6 +13,7 @@ const (
 	fileEncoderConfigKey    = "fileEncoderConfig"
 	jsonFormatKey           = "jsonFormat"
 	consoleFormatKey        = "consoleFormat"
+	zaplogfmtKey            = "zaplogfmt"
 )
 
 func WithLumberjack(config *LumberjackConfig) Option {
@@ -35,6 +36,10 @@ func WithJSONFormat() Option {
 	return option.NewOption(jsonFormatKey, nil)
 }
 
+func WithZaplogfmtFormat() Option {
+	return option.NewOption(zaplogfmtKey, nil)
+}
+
 func WithConsoleFormat() Option {
 	return option.NewOption(consoleFormatKey, nil)
 }
@@ -53,28 +58,27 @@ func containsOptions(options []Option, key string) (bool, Option) {
 }
 
 func checkFormat(options []Option) (bool, Option) {
-	var jsonExists, consoleExists bool
-	var jsonOpt, consoleOpt Option
+	var jsonExists, consoleExists, zaplogfmtExists bool
 
 	for _, opt := range options {
 		if opt.Name() == jsonFormatKey {
 			jsonExists = true
-			jsonOpt = opt
 		} else if opt.Name() == consoleFormatKey {
 			consoleExists = true
-			consoleOpt = opt
+		} else if opt.Name() == zaplogfmtKey {
+			zaplogfmtExists = true
 		}
 	}
 
-	if jsonExists && consoleExists {
-		// 如果两种格式都存在，返回默认的控制台格式
-		return true, consoleOpt
-	} else if jsonExists {
-		return false, jsonOpt
-	} else if consoleExists {
-		return false, consoleOpt
+	if jsonExists && consoleExists && zaplogfmtExists {
+		return true, WithConsoleFormat()
+	} else if jsonExists && !consoleExists && !zaplogfmtExists {
+		return false, WithJSONFormat()
+	} else if !jsonExists && consoleExists && !zaplogfmtExists {
+		return false, WithConsoleFormat()
+	} else if !jsonExists && !consoleExists && zaplogfmtExists {
+		return false, WithZaplogfmtFormat()
 	} else {
-		// 如果都不存在，返回默认的控制台格式
 		return false, WithConsoleFormat()
 	}
 
