@@ -21,10 +21,16 @@ func NewLogger(config *Config, options ...Option) *zap.Logger {
 	if both, option := checkFormat(options); both {
 		panic(errors.New("logger format can not be both console and json"))
 	} else {
-		if option.Name() == consoleFormatKey {
-			return consoleLogger(config, options...)
-		} else {
+		switch option.Name() {
+
+		case zaplogfmtKey:
+			return zaplogfmtLogger(config, options...)
+		case jsonFormatKey:
 			return jsonLogger(config, options...)
+		case consoleFormatKey:
+			fallthrough
+		default:
+			return consoleLogger(config, options...)
 		}
 	}
 }

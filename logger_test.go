@@ -31,6 +31,7 @@ func TestNewLoggerWithLumberJack(t *testing.T) {
 			MaxBackups: 7,
 		}),
 		WithLumberjack(LumberjackDefaultConfig()),
+		WithZaplogfmtFormat(),
 	)
 	ticker(logger)
 
@@ -58,6 +59,7 @@ func TestNewLogger(t *testing.T) {
 			NameKey:       "logger",
 			CallerKey:     "caller",
 			StacktraceKey: "stacktrace",
+			FunctionKey:   "func",
 			LineEnding:    zapcore.DefaultLineEnding,
 			EncodeLevel:   zapcore.CapitalLevelEncoder,
 			EncodeTime: func(date time.Time, encoder zapcore.PrimitiveArrayEncoder) {
@@ -73,6 +75,7 @@ func TestNewLogger(t *testing.T) {
 			NameKey:       "logger",
 			CallerKey:     "caller",
 			StacktraceKey: "stacktrace",
+			FunctionKey:   "func",
 			LineEnding:    zapcore.DefaultLineEnding,
 			EncodeLevel:   zapcore.CapitalLevelEncoder,
 			EncodeTime: func(date time.Time, encoder zapcore.PrimitiveArrayEncoder) {
@@ -89,7 +92,7 @@ func TestNewLogger(t *testing.T) {
 func TestNewSugaredLogger(t *testing.T) {
 
 	logger := NewSugaredLogger(&Config{
-		LogLevel:    "info",
+		LogLevel:    "DEBUG",
 		DevelopMode: false,
 	}, WithRotateLog(&RotateLogConfig{
 		FileName:  "./logs/rotatelog-sugared.log",
