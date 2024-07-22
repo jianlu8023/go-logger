@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jianlu8023/go-logger/pkg/df"
+	"github.com/jianlu8023/go-logger/internal/define"
 )
 
 type Config struct {
@@ -39,25 +39,25 @@ type LumberjackConfig struct {
 
 func LumberjackDefaultConfig() *LumberjackConfig {
 	return &LumberjackConfig{
-		FileName:   df.FileName,
-		MaxSize:    df.MaxSize,
-		MaxAge:     df.MaxAge,
-		MaxBackups: df.MaxBackups,
-		Compress:   df.Compress,
-		Localtime:  df.Localtime,
+		FileName:   define.FileName,
+		MaxSize:    define.MaxSize,
+		MaxAge:     define.MaxAge,
+		MaxBackups: define.MaxBackups,
+		Compress:   define.Compress,
+		Localtime:  define.Localtime,
 	}
 }
 
 func NewLumberjackUrl(config *LumberjackConfig) string {
-	dst := make([]byte, len(df.LumberjackTemplate))
-	copy(dst, df.LumberjackTemplate)
+	dst := make([]byte, len(define.LumberjackTemplate))
+	copy(dst, define.LumberjackTemplate)
 	var (
-		fileName   = df.FileName
-		maxSize    = df.MaxSize
-		maxAge     = df.MaxAge
-		maxBackups = df.MaxBackups
-		compress   = df.Compress
-		localtime  = df.Localtime
+		fileName   = define.FileName
+		maxSize    = define.MaxSize
+		maxAge     = define.MaxAge
+		maxBackups = define.MaxBackups
+		compress   = define.Compress
+		localtime  = define.Localtime
 	)
 	if nil != config {
 		if config.FileName != "" {
@@ -89,21 +89,21 @@ type RotateLogConfig struct {
 
 func RotateLogDefaultConfig() *RotateLogConfig {
 	return &RotateLogConfig{
-		FileName:     df.BaseName,
-		MaxAge:       df.RmaxAge.String(),
+		FileName:     define.BaseName,
+		MaxAge:       define.RmaxAge.String(),
 		LocalTime:    false,
-		RotationTime: df.RotationTime.String(),
+		RotationTime: define.RotationTime.String(),
 	}
 }
 
 func NewRotateLogURL(config *RotateLogConfig) string {
-	dst := make([]byte, len(df.RotateLogsTemplate))
-	copy(dst, df.RotateLogsTemplate)
+	dst := make([]byte, len(define.RotateLogsTemplate))
+	copy(dst, define.RotateLogsTemplate)
 	var (
-		baseName     = df.BaseName
-		maxAge       = df.RmaxAge
-		localtime    = df.Rlocaltime
-		rotationTime = df.RotationTime
+		baseName     = define.BaseName
+		maxAge       = define.RmaxAge
+		localtime    = define.Rlocaltime
+		rotationTime = define.RotationTime
 	)
 
 	if nil != config {

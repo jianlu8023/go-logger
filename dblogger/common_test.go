@@ -1,4 +1,4 @@
-package model
+package dblogger
 
 const (
 	tableBasicName = "basic"

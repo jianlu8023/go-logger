@@ -1,9 +1,10 @@
-package db
+package dblogger
 
 import (
-	"encoding/json"
 	"path/filepath"
 	"time"
+
+	"github.com/bytedance/sonic"
 
 	"go.uber.org/zap"
 	gormlogger "gorm.io/gorm/logger"
@@ -19,7 +20,7 @@ type Config struct {
 }
 
 func (c *Config) String() string {
-	bytes, _ := json.Marshal(c)
+	bytes, _ := sonic.Marshal(c)
 	return string(bytes)
 }
 

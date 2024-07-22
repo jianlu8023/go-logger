@@ -1,4 +1,4 @@
-package db
+package dblogger
 
 import (
 	"context"
