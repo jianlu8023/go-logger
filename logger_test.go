@@ -1,18 +1,29 @@
 package go_logger
 
 import (
+	"errors"
 	"os"
 	"os/signal"
 	"syscall"
 	"testing"
 	"time"
 
+	"github.com/labstack/gommon/log"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
 func TestNewLoggerWithNoFile(t *testing.T) {
-	logger := NewLogger(&Config{LogLevel: "info", DevelopMode: true})
+	logger := NewLogger(
+		&Config{
+			LogLevel:    "DEBUG",
+			DevelopMode: true,
+			ModuleName:  "[sdk]",
+			Caller:      true,
+			StackLevel:  "",
+		},
+		WithConsoleFormat(),
+	)
 	ticker(logger)
 }
 
@@ -20,7 +31,10 @@ func TestNewLoggerWithLumberJack(t *testing.T) {
 	logger := NewLogger(
 		&Config{
 			LogLevel:    "info",
-			DevelopMode: true,
+			DevelopMode: false,
+			ModuleName:  "[app]",
+			StackLevel:  "error",
+			Caller:      true,
 		},
 		WithLumberjack(&LumberjackConfig{
 			FileName:   "./logs/lumberjack-only-logger.log",
@@ -31,7 +45,7 @@ func TestNewLoggerWithLumberJack(t *testing.T) {
 			MaxBackups: 7,
 		}),
 		WithLumberjack(LumberjackDefaultConfig()),
-		WithZaplogfmtFormat(),
+		WithConsoleFormat(),
 	)
 	ticker(logger)
 
@@ -40,8 +54,11 @@ func TestNewLoggerWithLumberJack(t *testing.T) {
 func TestNewLogger(t *testing.T) {
 	logger := NewLogger(
 		&Config{
-			LogLevel:    "info",
+			LogLevel:    "debug",
 			DevelopMode: true,
+			StackLevel:  "",
+			ModuleName:  "[SDK]",
+			Caller:      true,
 		},
 		WithRotateLog(&RotateLogConfig{
 			FileName:  "./logs/rotatelog-logger.log",
@@ -77,7 +94,7 @@ func TestNewLogger(t *testing.T) {
 			StacktraceKey: "stacktrace",
 			FunctionKey:   "func",
 			LineEnding:    zapcore.DefaultLineEnding,
-			EncodeLevel:   zapcore.CapitalLevelEncoder,
+			EncodeLevel:   CustomColorCapitalLevelEncoder,
 			EncodeTime: func(date time.Time, encoder zapcore.PrimitiveArrayEncoder) {
 				encoder.AppendString(date.Format("2006-01-02 15:04:05.000"))
 			},
@@ -93,7 +110,10 @@ func TestNewSugaredLogger(t *testing.T) {
 
 	logger := NewSugaredLogger(&Config{
 		LogLevel:    "DEBUG",
-		DevelopMode: false,
+		DevelopMode: true,
+		ModuleName:  "[app]",
+		StackLevel:  "error",
+		Caller:      true,
 	}, WithRotateLog(&RotateLogConfig{
 		FileName:  "./logs/rotatelog-sugared.log",
 		LocalTime: true,
@@ -101,7 +121,7 @@ func TestNewSugaredLogger(t *testing.T) {
 		FileName:  "./logs/lumberjack-sugared.log",
 		Localtime: true,
 	}))
-
+	logger.Errorf("error info %s", errors.New("this is a test error"))
 	tickerSugared(logger)
 
 }
@@ -114,8 +134,6 @@ func tickerSugared(logger *zap.SugaredLogger) {
 			select {
 			case <-ticker.C:
 				logger.Infof("info %s", "log")
-				logger.Warnf("warn %s", "log")
-
 				logger.Infof("info struct %v", struct {
 					Name string
 					Age  int
@@ -123,7 +141,10 @@ func tickerSugared(logger *zap.SugaredLogger) {
 					Name: "test",
 					Age:  18,
 				})
-				// logger.Errorf("_error %s", errors.New("test _error"))
+				logger.Warnf("warn %s", "log")
+				log.Debugf("debug %s", "log")
+				log.Errorf("error %s", "log")
+				logger.Errorf("_error %s", errors.New("test _error"))
 			}
 		}
 	}()
@@ -147,6 +168,8 @@ func ticker(log *zap.Logger) {
 				// logger.Info("info log")
 				log.Info("info log", zap.Any("info", time.Now()))
 				log.Warn("warn log", zap.Any("warn", time.Now()))
+				log.Debug("debug log", zap.Any("debug", time.Now()))
+				log.Error("error log", zap.Any("error", time.Now()))
 			}
 		}
 	}()

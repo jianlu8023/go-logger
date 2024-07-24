@@ -19,6 +19,9 @@ func TestNewDBLogger(t *testing.T) {
 		&glog.Config{
 			DevelopMode: false,
 			LogLevel:    "info",
+			Caller:      true,
+			StackLevel:  "error",
+			ModuleName:  "[db]",
 		},
 		glog.WithConsoleFormat(),
 		glog.WithLumberjack(&glog.LumberjackConfig{

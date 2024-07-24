@@ -10,6 +10,9 @@ import (
 type Config struct {
 	LogLevel    string `json:"logLevel,omitempty"`
 	DevelopMode bool   `json:"developMode,omitempty"`
+	StackLevel  string `json:"stackLevel,omitempty"`
+	ModuleName  string `json:"moduleName,omitempty"`
+	Caller      bool   `json:"caller,omitempty"`
 }
 
 type LumberjackConfig struct {
