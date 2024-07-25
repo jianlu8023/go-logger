@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/bytedance/sonic"
+
 	"github.com/jianlu8023/go-logger/internal/define"
 )
 
@@ -38,6 +40,11 @@ type LumberjackConfig struct {
 	// backup files is the computer's local time.  The default is to use UTC
 	// time.
 	Localtime bool `json:"localtime"`
+}
+
+func (l *LumberjackConfig) String() string {
+	marshalString, _ := sonic.MarshalString(l)
+	return marshalString
 }
 
 func LumberjackDefaultConfig() *LumberjackConfig {
@@ -79,8 +86,7 @@ func NewLumberjackUrl(config *LumberjackConfig) string {
 		localtime = config.Localtime
 	}
 
-	return fmt.Sprintf(string(dst), fileName, maxSize, maxAge, maxBackups,
-		compress, localtime)
+	return fmt.Sprintf(string(dst), fileName, maxSize, maxAge, maxBackups, compress, localtime)
 }
 
 type RotateLogConfig struct {
@@ -88,6 +94,11 @@ type RotateLogConfig struct {
 	MaxAge       string `json:"maxAge,omitempty"`
 	LocalTime    bool   `json:"localTime,omitempty"`
 	RotationTime string `json:"rotationTime,omitempty"`
+}
+
+func (r *RotateLogConfig) String() string {
+	marshalString, _ := sonic.MarshalString(r)
+	return marshalString
 }
 
 func RotateLogDefaultConfig() *RotateLogConfig {

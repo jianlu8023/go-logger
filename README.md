@@ -3,57 +3,63 @@
 ## Quick Start
 
 ```go
+package main
+
 import (
-glog "github.com/jianlu8023/go-logger"
+	glog "github.com/jianlu8023/go-logger"
 )
 
-logger := glog.NewLogger(
-    &glog.Config{
-        LogLevel:    "debug",
-        DevelopMode: true,
-    },
-    glog.WithRotateLog(&glog.RotateLogConfig{
-        FileName:  "./logs/rotatelog-db-test.log",
-        LocalTime: true,
-    }),
-    glog.WithLumberjack(&glog.LumberjackConfig{
-        FileName:  "./logs/lumberjack-db-test.log",
-        Localtime: true,
-    }),
-    glog.WithConsoleConfig(zapcore.EncoderConfig{
-        MessageKey:     "msg",
-        LevelKey:       "level",
-        TimeKey:        "time",
-        NameKey:        "logger",
-        CallerKey:      "caller",
-        FunctionKey:    "",
-        StacktraceKey:  "",
-        LineEnding:     zapcore.DefaultLineEnding,
-        EncodeLevel:    glog.CustomCapitalStringLevelEncoder,
-        EncodeTime:     glog.CustomTimeEncoder,
-        EncodeDuration: zapcore.SecondsDurationEncoder,
-        EncodeCaller:   zapcore.ShortCallerEncoder,
-        EncodeName:     zapcore.FullNameEncoder,
-    }),
-	glog.WithFileConfig(zapcore.EncoderConfig{
-        MessageKey:     "msg",
-        LevelKey:       "level",
-        TimeKey:        "time",
-        NameKey:        "logger",
-        CallerKey:      "caller",
-        FunctionKey:    "func",
-        StacktraceKey:  "stacktrace",
-        LineEnding:     zapcore.DefaultLineEnding,
-        EncodeLevel:    glog.CustomCapitalStringLevelEncoder,
-        EncodeTime:     glog.CustomTimeEncoder,
-        EncodeDuration: zapcore.SecondsDurationEncoder,
-        EncodeCaller:   zapcore.ShortCallerEncoder,
-        EncodeName:     zapcore.FullNameEncoder,
-    }),
-
-    glog.WithConsoleFormat(),
-)
-
+func main() {
+	logger := NewLogger(
+		&Config{
+			LogLevel:    "debug",
+			DevelopMode: true,
+			StackLevel:  "",
+			ModuleName:  "[SDK]",
+			Caller:      true,
+		},
+		WithRotateLog(&RotateLogConfig{
+			FileName:  "./logs/rotatelog-logger.log",
+			LocalTime: true,
+		}),
+		WithRotateLog(RotateLogDefaultConfig()),
+		WithLumberjack(&LumberjackConfig{
+			FileName: "./logs/lumberjack-logger.log",
+		}),
+		WithLumberjack(LumberjackDefaultConfig()),
+		WithFileConfig(zapcore.EncoderConfig{
+			MessageKey:     "msg",
+			LevelKey:       "level",
+			TimeKey:        "time",
+			NameKey:        "logger",
+			CallerKey:      "caller",
+			StacktraceKey:  "stacktrace",
+			FunctionKey:    "func",
+			LineEnding:     zapcore.DefaultLineEnding,
+			EncodeLevel:    glog.CustomColorCapitalLevelEncoder,
+			EncodeTime:     glog.CustomTimeEncoder,
+			EncodeDuration: zapcore.SecondsDurationEncoder,
+			EncodeCaller:   zapcore.ShortCallerEncoder,
+		}),
+		WithConsoleConfig(zapcore.EncoderConfig{
+			MessageKey:    "msg",
+			LevelKey:      "level",
+			TimeKey:       "time",
+			NameKey:       "logger",
+			CallerKey:     "caller",
+			StacktraceKey: "stacktrace",
+			FunctionKey:   "func",
+			LineEnding:    zapcore.DefaultLineEnding,
+			EncodeLevel:   CustomColorCapitalLevelEncoder,
+			EncodeTime: func(date time.Time, encoder zapcore.PrimitiveArrayEncoder) {
+				encoder.AppendString(date.Format("2006-01-02 15:04:05.000"))
+			},
+			EncodeDuration: zapcore.SecondsDurationEncoder,
+			EncodeCaller:   zapcore.ShortCallerEncoder,
+		}),
+		WithConsoleFormat(),
+	)
+}
 ```
 
 

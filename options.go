@@ -14,34 +14,22 @@ const (
 	jsonFormatKey           = "jsonFormat"
 	consoleFormatKey        = "consoleFormat"
 	zaplogfmtKey            = "zaplogfmt"
+	consoleOutPutKey        = "consoleOutPut"
+	fileOutPutKey           = "fileOutPut"
 )
 
-func WithLumberjack(config *LumberjackConfig) Option {
-	return option.NewOption(lumberjackKey, config)
-}
-
-func WithRotateLog(config *RotateLogConfig) Option {
-	return option.NewOption(rotatelogKey, config)
-}
-
+func WithFileOutPut() Option                         { return option.NewOption(fileOutPutKey, true) }
+func WithConsoleOutPut() Option                      { return option.NewOption(consoleOutPutKey, true) }
+func WithRotateLog(config *RotateLogConfig) Option   { return option.NewOption(rotatelogKey, config) }
+func WithLumberjack(config *LumberjackConfig) Option { return option.NewOption(lumberjackKey, config) }
+func WithJSONFormat() Option                         { return option.NewOption(jsonFormatKey, nil) }
+func WithConsoleFormat() Option                      { return option.NewOption(consoleFormatKey, nil) }
+func WithZaplogfmtFormat() Option                    { return option.NewOption(zaplogfmtKey, nil) }
 func WithConsoleConfig(config zapcore.EncoderConfig) Option {
 	return option.NewOption(consoleEncoderConfigKey, config)
 }
-
 func WithFileConfig(config zapcore.EncoderConfig) Option {
 	return option.NewOption(fileEncoderConfigKey, config)
-}
-
-func WithJSONFormat() Option {
-	return option.NewOption(jsonFormatKey, nil)
-}
-
-func WithZaplogfmtFormat() Option {
-	return option.NewOption(zaplogfmtKey, nil)
-}
-
-func WithConsoleFormat() Option {
-	return option.NewOption(consoleFormatKey, nil)
 }
 
 func containsOptions(options []Option, key string) (bool, Option) {
