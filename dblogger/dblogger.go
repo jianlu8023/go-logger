@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	dbLogger "gorm.io/gorm/logger"
+	xormlogger "xorm.io/xorm/log"
 )
 
 type Logger struct {
@@ -26,6 +27,47 @@ type Logger struct {
 func (l *Logger) String() string {
 	bytes, _ := sonic.Marshal(l)
 	return string(bytes)
+}
+
+func (l *Logger) BeforeSQL(context xormlogger.LogContext) {
+
+	panic("implement me")
+}
+
+func (l *Logger) AfterSQL(context xormlogger.LogContext) {
+	panic("implement me")
+}
+
+func (l *Logger) Debugf(format string, v ...interface{}) {
+	panic("implement me")
+}
+
+func (l *Logger) Errorf(format string, v ...interface{}) {
+	panic("implement me")
+}
+
+func (l *Logger) Infof(format string, v ...interface{}) {
+	panic("implement me")
+}
+
+func (l *Logger) Warnf(format string, v ...interface{}) {
+	panic("implement me")
+}
+
+func (l *Logger) Level() xormlogger.LogLevel {
+	panic("implement me")
+}
+
+func (l *Logger) SetLevel(lv xormlogger.LogLevel) {
+	panic("implement me")
+}
+
+func (l *Logger) ShowSQL(show ...bool) {
+	panic("implement me")
+}
+
+func (l *Logger) IsShowSQL() bool {
+	panic("implement me")
 }
 
 func (l *Logger) LogMode(level dbLogger.LogLevel) dbLogger.Interface {
