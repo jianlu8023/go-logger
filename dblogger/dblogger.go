@@ -62,19 +62,27 @@ func (l *Logger) AfterSQL(ctx xormlogger.LogContext) {
 }
 
 func (l *Logger) Debugf(format string, v ...interface{}) {
-	l.logger(context.Background()).Sugar().Debugf(format, v...)
+	if l.LogLevel >= DEBUG {
+		l.logger(context.Background()).Sugar().Debugf(format, v...)
+	}
 }
 
 func (l *Logger) Errorf(format string, v ...interface{}) {
-	l.logger(context.Background()).Sugar().Errorf(format, v...)
+	if l.LogLevel >= ERROR {
+		l.logger(context.Background()).Sugar().Errorf(format, v...)
+	}
 }
 
 func (l *Logger) Infof(format string, v ...interface{}) {
-	l.logger(context.Background()).Sugar().Infof(format, v...)
+	if l.LogLevel >= INFO {
+		l.logger(context.Background()).Sugar().Infof(format, v...)
+	}
 }
 
 func (l *Logger) Warnf(format string, v ...interface{}) {
-	l.logger(context.Background()).Sugar().Warnf(format, v...)
+	if l.LogLevel >= WARN {
+		l.logger(context.Background()).Sugar().Warnf(format, v...)
+	}
 }
 
 func (l *Logger) Level() xormlogger.LogLevel {
@@ -105,6 +113,8 @@ func (l *Logger) SetLevel(lv xormlogger.LogLevel) {
 	case xormlogger.LOG_ERR:
 		l.LogLevel = ERROR
 	case xormlogger.LOG_OFF:
+		l.LogLevel = OFF
+	default:
 		l.LogLevel = OFF
 	}
 }
