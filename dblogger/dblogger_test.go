@@ -7,8 +7,10 @@ import (
 	"time"
 
 	glog "github.com/jianlu8023/go-logger"
+	"go.uber.org/zap/zapcore"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"xorm.io/xorm"
 )
 
 func TestNewDBLogger(t *testing.T) {
@@ -21,6 +23,25 @@ func TestNewDBLogger(t *testing.T) {
 			ModuleName:  "[db]",
 		},
 		glog.WithConsoleFormat(),
+		glog.WithConsoleConfig(
+			zapcore.EncoderConfig{
+				MessageKey:       "msg",
+				LevelKey:         "",
+				TimeKey:          "",
+				NameKey:          "",
+				CallerKey:        "",
+				FunctionKey:      "",
+				StacktraceKey:    "stacktrace",
+				SkipLineEnding:   false,
+				LineEnding:       zapcore.DefaultLineEnding,
+				EncodeLevel:      glog.CustomColorCapitalLevelEncoder,
+				EncodeTime:       glog.CustomTimeEncoder,
+				EncodeDuration:   zapcore.SecondsDurationEncoder,
+				EncodeCaller:     zapcore.ShortCallerEncoder,
+				EncodeName:       zapcore.FullNameEncoder,
+				ConsoleSeparator: "\t",
+			},
+		),
 	)
 	logger := NewDBLogger(Config{
 		Logger:                    newLogger,
@@ -29,9 +50,49 @@ func TestNewDBLogger(t *testing.T) {
 		Colorful:                  true,
 		IgnoreRecordNotFoundError: false,
 		ParameterizedQueries:      true,
+		ShowSql:                   true,
 	})
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(3)
+
+	go func(log *Logger) {
+		defer wg.Done()
+		db, err := xorm.NewEngine(
+			"mysql",
+			"root:123456@tcp(192.168.209.128:3306)/basic",
+		)
+		db.SetLogger(log)
+		if err != nil {
+			fmt.Println("xorm connect failed", err)
+			return
+		}
+
+		defer func() {
+			if err := db.Close(); err != nil {
+				fmt.Println("xorm close failed", err)
+			}
+		}()
+		version, err := db.DBVersion()
+		if err != nil {
+			fmt.Println("db version failed", err)
+			return
+		}
+		fmt.Println("xorm version is", version)
+		err = db.Ping()
+
+		if err != nil {
+			fmt.Println("db ping failed", err)
+			return
+		}
+		var b Basic
+		get, err := db.Where("uid=?", 1).Get(&b)
+
+		if err != nil || get == false {
+			fmt.Println("get failed", err)
+			return
+		}
+		fmt.Println("xorm get basic ", b)
+	}(logger)
 
 	go func(log *Logger) {
 		defer wg.Done()

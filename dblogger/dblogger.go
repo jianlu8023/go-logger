@@ -47,15 +47,17 @@ func (l *Logger) String() string {
 func (l *Logger) BeforeSQL(ctx xormlogger.LogContext) {}
 
 func (l *Logger) AfterSQL(ctx xormlogger.LogContext) {
-	var sessionPart string
-	v := ctx.Ctx.Value(SessionIDKey)
-	if key, ok := v.(string); ok {
-		sessionPart = fmt.Sprintf(" [%s]", key)
-	}
+	//var sessionPart string
+	//v := ctx.Ctx.Value(SessionIDKey)
+	//if key, ok := v.(string); ok {
+	//	sessionPart = fmt.Sprintf(" [%s]", key)
+	//}
 	if ctx.ExecuteTime > 0 {
-		l.Infof("[SQL]%s %s %v - %v", sessionPart, ctx.SQL, ctx.Args, ctx.ExecuteTime)
+		l.Info(ctx.Ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 执行时间: %v\n",
+			ctx.SQL, ctx.Args, ctx.ExecuteTime)
 	} else {
-		l.Infof("[SQL]%s %s %v", sessionPart, ctx.SQL, ctx.Args)
+		l.Info(ctx.Ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 执行时间: %v\n",
+			ctx.SQL, ctx.Args, ctx.ExecuteTime)
 	}
 }
 
