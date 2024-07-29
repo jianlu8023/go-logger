@@ -6,11 +6,13 @@ import (
 	"testing"
 	"time"
 
-	glog "github.com/jianlu8023/go-logger"
 	"go.uber.org/zap/zapcore"
 	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"xorm.io/xorm"
+
+	glog "github.com/jianlu8023/go-logger"
 )
 
 func TestNewDBLogger(t *testing.T) {
@@ -59,7 +61,7 @@ func TestNewDBLogger(t *testing.T) {
 		defer wg.Done()
 		db, err := xorm.NewEngine(
 			"mysql",
-			"root:123456@tcp(192.168.209.128:3306)/basic",
+			"root:123456@tcp(127.0.0.1:3306)/basic",
 		)
 		db.SetLogger(log)
 		if err != nil {
@@ -99,7 +101,7 @@ func TestNewDBLogger(t *testing.T) {
 		var (
 			username = "root"
 			password = "123456"
-			host     = "192.168.209.128"
+			host     = "127.0.0.1"
 			port     = "3306"
 			database = "basic"
 		)
@@ -146,53 +148,53 @@ func TestNewDBLogger(t *testing.T) {
 
 	go func(log *Logger) {
 		defer wg.Done()
-		//var (
-		//	username   = "postgres"
-		//	password   = "123456"
-		//	host       = "192.168.58.110"
-		//	port       = "5432"
-		//	database   = "basic"
-		//	searchPath = "public"
-		//)
-		//pgDsn := fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v sslmode=disable search_path=%v",
-		//	host, username, password, database, port, searchPath)
-		//
-		//pgDB, err := gorm.Open(postgres.Open(pgDsn), &gorm.Config{
-		//	Logger: log,
-		//})
-		//
-		//if err != nil {
-		//	fmt.Println("pgDB connect failed", err)
-		//	return
-		//}
-		//
-		//err = pgDB.AutoMigrate(&Basic{})
-		//if err != nil {
-		//	fmt.Println("pgDB migrate failed", err)
-		//	return
-		//}
-		//
-		//var version string
-		//pgDB.Raw("select version();").Scan(&version)
-		//fmt.Println("postgres version is", version)
-		//
-		//if err := pgDB.Model(&Basic{}).FirstOrCreate(&Basic{
-		//	Name: "test",
-		//	Age:  18,
-		//	Sex:  0,
-		//}).Error; err != nil {
-		//	fmt.Println("create failed", err)
-		//	return
-		//}
-		//
-		//var basic Basic
-		//find := pgDB.Model(&Basic{}).Where(Basic{Uid: 1}).First(&basic)
-		//
-		//if find.Error != nil {
-		//	fmt.Println("find failed", find.Error)
-		//	return
-		//}
-		//fmt.Println("basic is", basic)
+		var (
+			username   = "postgres"
+			password   = "123456"
+			host       = "192.168.58.110"
+			port       = "5432"
+			database   = "basic"
+			searchPath = "public"
+		)
+		pgDsn := fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v sslmode=disable search_path=%v",
+			host, username, password, database, port, searchPath)
+
+		pgDB, err := gorm.Open(postgres.Open(pgDsn), &gorm.Config{
+			Logger: log,
+		})
+
+		if err != nil {
+			fmt.Println("pgDB connect failed", err)
+			return
+		}
+
+		err = pgDB.AutoMigrate(&Basic{})
+		if err != nil {
+			fmt.Println("pgDB migrate failed", err)
+			return
+		}
+
+		var version string
+		pgDB.Raw("select version();").Scan(&version)
+		fmt.Println("postgres version is", version)
+
+		if err := pgDB.Model(&Basic{}).FirstOrCreate(&Basic{
+			Name: "test",
+			Age:  18,
+			Sex:  0,
+		}).Error; err != nil {
+			fmt.Println("create failed", err)
+			return
+		}
+
+		var basic Basic
+		find := pgDB.Model(&Basic{}).Where(Basic{Uid: 1}).First(&basic)
+
+		if find.Error != nil {
+			fmt.Println("find failed", find.Error)
+			return
+		}
+		fmt.Println("basic is", basic)
 	}(logger)
 	wg.Wait()
 	newLogger.Sugar().Infof("test end ...")

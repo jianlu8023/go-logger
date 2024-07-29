@@ -24,7 +24,10 @@ func (c *Config) String() string {
 	return string(bytes)
 }
 
-const ctxLoggerKey = "zapLogger"
+const (
+	ctxLoggerKey = "zapLogger"
+	SessionIDKey = "__xorm_session_id"
+)
 
 var (
 	gormPackage    = filepath.Join("gorm.io", "gorm")
