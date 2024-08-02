@@ -5,7 +5,7 @@ import (
 
 	"go.uber.org/zap/zapcore"
 
-	"github.com/jianlu8023/go-logger/pkg/colour"
+	"github.com/jianlu8023/go-tools/pkg/format/colour"
 )
 
 const (

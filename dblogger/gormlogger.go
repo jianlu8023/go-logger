@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 	dbLogger "gorm.io/gorm/logger"
 
-	"github.com/jianlu8023/go-logger/pkg/colour"
+	"github.com/jianlu8023/go-tools/pkg/format/colour"
 )
 
 func (l *Logger) LogMode(level dbLogger.LogLevel) dbLogger.Interface {
