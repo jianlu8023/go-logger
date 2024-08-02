@@ -36,6 +36,7 @@ func (l *Logger) Info(ctx context.Context, msg string, data ...interface{}) {
 			for _, s := range strings.Split(fmt.Sprintf(msg, data...), "\n") {
 				l.logger(ctx).Sugar().Infof(colour.Blue(s))
 			}
+			// l.logger(ctx).Sugar().Infof(colour.Blue(fmt.Sprintf(msg, data...)))
 		} else {
 			l.logger(ctx).Sugar().Infof(msg, data...)
 		}
@@ -48,6 +49,7 @@ func (l *Logger) Warn(ctx context.Context, msg string, data ...interface{}) {
 			for _, s := range strings.Split(fmt.Sprintf(msg, data...), "\n") {
 				l.logger(ctx).Sugar().Warnf(colour.Yellow(s))
 			}
+			// l.logger(ctx).Sugar().Warnf(colour.Yellow(fmt.Sprintf(msg, data...)))
 		} else {
 			l.logger(ctx).Sugar().Warnf(msg, data...)
 		}
@@ -60,6 +62,7 @@ func (l *Logger) Error(ctx context.Context, msg string, data ...interface{}) {
 			for _, s := range strings.Split(fmt.Sprintf(msg, data...), "\n") {
 				l.logger(ctx).Sugar().Errorf(colour.Red(s))
 			}
+			// l.logger(ctx).Sugar().Errorf(colour.Red(fmt.Sprintf(msg, data...)))
 		} else {
 			l.logger(ctx).Sugar().Errorf(msg, data...)
 		}
@@ -81,24 +84,47 @@ func (l *Logger) Trace(ctx context.Context,
 	case err != nil && l.LogLevel >= ERROR && (!errors.Is(err, dbLogger.ErrRecordNotFound) || !l.IgnoreRecordNotFoundError):
 		sql, rows := fc()
 		if rows == -1 {
-			l.Error(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 执行耗时: %v \n==> 执行错误: %v", sql, rows, elapsedStr, err)
+			l.Error(ctx, "==> 执行语句: %v", sql)
+			l.Error(ctx, "==> 影响行数: %v", rows)
+			l.Error(ctx, "==> 执行耗时: %v", elapsedStr)
+			l.Error(ctx, "==> 执行错误: %v", err)
+			// l.Error(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 执行耗时: %v \n==> 执行错误: %v", sql, rows, elapsedStr, err)
 		} else {
-			l.Error(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 执行耗时: %v \n==> 执行错误: %v", sql, rows, elapsedStr, err)
+			l.Error(ctx, "==> 执行语句: %v", sql)
+			l.Error(ctx, "==> 影响行数: %v", rows)
+			l.Error(ctx, "==> 执行耗时: %v", elapsedStr)
+			l.Error(ctx, "==> 执行错误: %v", err)
+			// l.Error(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 执行耗时: %v \n==> 执行错误: %v", sql, rows, elapsedStr, err)
 		}
 	case elapsed > l.SlowThreshold && l.SlowThreshold != 0 && l.LogLevel >= WARN:
 		sql, rows := fc()
 		slowLog := fmt.Sprintf("SLOW SQL >= %v", l.SlowThreshold)
 		if rows == -1 {
-			l.Warn(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 慢SQL: %v \n==> 执行时间: %v", sql, rows, slowLog, elapsedStr)
+			l.Warn(ctx, "==> 执行语句: %v", sql)
+			l.Warn(ctx, "==> 影响行数: %v", rows)
+			l.Warn(ctx, "==> 慢SQL: %v", slowLog)
+			l.Warn(ctx, "==> 执行耗时: %v", elapsedStr)
+
+			// l.Warn(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 慢SQL: %v \n==> 执行时间: %v", sql, rows, slowLog, elapsedStr)
 		} else {
-			l.Warn(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 慢SQL: %v \n==> 执行时间: %v", sql, rows, slowLog, elapsedStr)
+			l.Warn(ctx, "==> 执行语句: %v", sql)
+			l.Warn(ctx, "==> 影响行数: %v", rows)
+			l.Warn(ctx, "==> 慢SQL: %v", slowLog)
+			l.Warn(ctx, "==> 执行耗时: %v", elapsedStr)
+			// l.Warn(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 慢SQL: %v \n==> 执行时间: %v", sql, rows, slowLog, elapsedStr)
 		}
 	case l.LogLevel == INFO:
 		sql, rows := fc()
 		if rows == -1 {
-			l.Info(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 执行时间: %v", sql, rows, elapsedStr)
+			l.Info(ctx, "==> 执行语句: %v", sql)
+			l.Info(ctx, "==> 影响行数: %v", rows)
+			l.Info(ctx, "==> 执行耗时: %v", elapsedStr)
+			// l.Info(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 执行时间: %v", sql, rows, elapsedStr)
 		} else {
-			l.Info(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 执行时间: %v", sql, rows, elapsedStr)
+			l.Info(ctx, "==> 执行语句: %v", sql)
+			l.Info(ctx, "==> 影响行数: %v", rows)
+			l.Info(ctx, "==> 执行耗时: %v", elapsedStr)
+			// l.Info(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 执行时间: %v", sql, rows, elapsedStr)
 		}
 	}
 }
