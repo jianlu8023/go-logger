@@ -11,6 +11,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	dbLogger "gorm.io/gorm/logger"
+
+	"github.com/jianlu8023/go-logger/pkg/colour"
 )
 
 func (l *Logger) LogMode(level dbLogger.LogLevel) dbLogger.Interface {
@@ -30,19 +32,37 @@ func (l *Logger) LogMode(level dbLogger.LogLevel) dbLogger.Interface {
 
 func (l *Logger) Info(ctx context.Context, msg string, data ...interface{}) {
 	if l.LogLevel >= INFO {
-		l.logger(ctx).Sugar().Infof(msg, data...)
+		if l.Colorful {
+			for _, s := range strings.Split(fmt.Sprintf(msg, data...), "\n") {
+				l.logger(ctx).Sugar().Infof(colour.Blue(s))
+			}
+		} else {
+			l.logger(ctx).Sugar().Infof(msg, data...)
+		}
 	}
 }
 
 func (l *Logger) Warn(ctx context.Context, msg string, data ...interface{}) {
 	if l.LogLevel >= WARN {
-		l.logger(ctx).Sugar().Warnf(msg, data...)
+		if l.Colorful {
+			for _, s := range strings.Split(fmt.Sprintf(msg, data...), "\n") {
+				l.logger(ctx).Sugar().Warnf(colour.Yellow(s))
+			}
+		} else {
+			l.logger(ctx).Sugar().Warnf(msg, data...)
+		}
 	}
 }
 
 func (l *Logger) Error(ctx context.Context, msg string, data ...interface{}) {
 	if l.LogLevel >= ERROR {
-		l.logger(ctx).Sugar().Errorf(msg, data...)
+		if l.Colorful {
+			for _, s := range strings.Split(fmt.Sprintf(msg, data...), "\n") {
+				l.logger(ctx).Sugar().Errorf(colour.Red(s))
+			}
+		} else {
+			l.logger(ctx).Sugar().Errorf(msg, data...)
+		}
 	}
 }
 
@@ -61,30 +81,30 @@ func (l *Logger) Trace(ctx context.Context,
 	case err != nil && l.LogLevel >= ERROR && (!errors.Is(err, dbLogger.ErrRecordNotFound) || !l.IgnoreRecordNotFoundError):
 		sql, rows := fc()
 		if rows == -1 {
-			l.Error(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 执行耗时: %v \n==> 执行错误: %v\n", sql, rows, elapsedStr, err)
+			l.Error(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 执行耗时: %v \n==> 执行错误: %v", sql, rows, elapsedStr, err)
 		} else {
-			l.Error(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 执行耗时: %v \n==> 执行错误: %v\n", sql, rows, elapsedStr, err)
+			l.Error(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 执行耗时: %v \n==> 执行错误: %v", sql, rows, elapsedStr, err)
 		}
 	case elapsed > l.SlowThreshold && l.SlowThreshold != 0 && l.LogLevel >= WARN:
 		sql, rows := fc()
 		slowLog := fmt.Sprintf("SLOW SQL >= %v", l.SlowThreshold)
 		if rows == -1 {
-			l.Warn(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 慢SQL: %v \n==> 执行时间: %v\n", sql, rows, slowLog, elapsedStr)
+			l.Warn(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 慢SQL: %v \n==> 执行时间: %v", sql, rows, slowLog, elapsedStr)
 		} else {
-			l.Warn(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 慢SQL: %v \n==> 执行时间: %v\n", sql, rows, slowLog, elapsedStr)
+			l.Warn(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 慢SQL: %v \n==> 执行时间: %v", sql, rows, slowLog, elapsedStr)
 		}
 	case l.LogLevel == INFO:
 		sql, rows := fc()
 		if rows == -1 {
-			l.Info(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 执行时间: %v\n", sql, rows, elapsedStr)
+			l.Info(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 执行时间: %v", sql, rows, elapsedStr)
 		} else {
-			l.Info(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 执行时间: %v\n", sql, rows, elapsedStr)
+			l.Info(ctx, "\n==> 执行语句: %v \n==> 影响行数: %v \n==> 执行时间: %v", sql, rows, elapsedStr)
 		}
 	}
 }
 
 func (l *Logger) logger(ctx context.Context) *zap.Logger {
-	logger := l.ZapLogger
+	logger := l.zapLogger
 	if ctx != nil {
 		if c, ok := ctx.(*gin.Context); ok {
 			ctx = c.Request.Context()

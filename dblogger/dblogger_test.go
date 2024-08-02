@@ -28,11 +28,11 @@ func TestNewDBLogger(t *testing.T) {
 		glog.WithConsoleConfig(
 			zapcore.EncoderConfig{
 				MessageKey:       "msg",
-				LevelKey:         "",
-				TimeKey:          "",
-				NameKey:          "",
-				CallerKey:        "",
-				FunctionKey:      "",
+				LevelKey:         "level",
+				TimeKey:          "time",
+				NameKey:          "name",
+				CallerKey:        "caller",
+				FunctionKey:      "func",
 				StacktraceKey:    "stacktrace",
 				SkipLineEnding:   false,
 				LineEnding:       zapcore.DefaultLineEnding,
@@ -45,15 +45,17 @@ func TestNewDBLogger(t *testing.T) {
 			},
 		),
 	)
-	logger := NewDBLogger(Config{
-		Logger:                    newLogger,
-		SlowThreshold:             200 * time.Millisecond,
-		LogLevel:                  INFO,
-		Colorful:                  true,
-		IgnoreRecordNotFoundError: false,
-		ParameterizedQueries:      true,
-		ShowSql:                   true,
-	})
+	logger := NewDBLogger(
+		Config{
+			SlowThreshold:             200 * time.Millisecond,
+			LogLevel:                  INFO,
+			Colorful:                  true,
+			IgnoreRecordNotFoundError: false,
+			ParameterizedQueries:      true,
+			ShowSql:                   true,
+		},
+		// WithCustomLogger(newLogger),
+	)
 	var wg sync.WaitGroup
 	wg.Add(3)
 

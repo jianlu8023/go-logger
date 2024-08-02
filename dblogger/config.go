@@ -5,12 +5,10 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
-
-	"go.uber.org/zap"
 )
 
 type Config struct {
-	Logger                    *zap.Logger   `json:"logger,omitempty"`
+	// Logger                    *zap.Logger   `json:"logger,omitempty"`
 	LogLevel                  LogLevel      `json:"logLevel,omitempty"`
 	SlowThreshold             time.Duration `json:"slowThreshold,omitempty"`
 	Colorful                  bool          `json:"colorful,omitempty"`

@@ -3,22 +3,16 @@ package go_logger
 import (
 	"time"
 
-	"github.com/labstack/gommon/color"
-
 	"go.uber.org/zap/zapcore"
-)
 
-func init() {
-	c = color.New()
-	c.Enable()
-}
+	"github.com/jianlu8023/go-logger/pkg/colour"
+)
 
 const (
 	format = "2006-01-02 15:04:05.000"
 )
 
 var (
-	c                    *color.Color
 	consoleEncoderConfig = zapcore.EncoderConfig{
 		MessageKey:     "msg",
 		LevelKey:       "level",
@@ -63,13 +57,13 @@ func CustomColorCapitalLevelEncoder(level zapcore.Level, enc zapcore.PrimitiveAr
 	var colorStr string
 	switch level {
 	case zapcore.DebugLevel:
-		colorStr = c.Magenta(level.CapitalString())
+		colorStr = colour.Magenta(level.CapitalString())
 	case zapcore.InfoLevel:
-		colorStr = c.Blue(level.CapitalString())
+		colorStr = colour.Blue(level.CapitalString())
 	case zapcore.WarnLevel:
-		colorStr = c.Yellow(level.CapitalString())
+		colorStr = colour.Yellow(level.CapitalString())
 	case zapcore.ErrorLevel, zapcore.DPanicLevel, zapcore.PanicLevel, zapcore.FatalLevel:
-		colorStr = c.Red(level.CapitalString())
+		colorStr = colour.Red(level.CapitalString())
 	}
 	enc.AppendString("[" + colorStr + "]")
 }

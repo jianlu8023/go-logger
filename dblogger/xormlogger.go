@@ -15,10 +15,10 @@ func (l *Logger) AfterSQL(ctx xormlogger.LogContext) {
 	//	 sessionPart = fmt.Sprintf(" [%s]", key)
 	// }
 	if ctx.ExecuteTime > 0 {
-		l.Info(ctx.Ctx, "\n==> 执行语句: %v \n==> 执行参数: %v \n==> 执行时间: %v\n",
+		l.Info(ctx.Ctx, "\n==> 执行语句: %v \n==> 执行参数: %v \n==> 执行时间: %v",
 			ctx.SQL, ctx.Args, ctx.ExecuteTime)
 	} else {
-		l.Info(ctx.Ctx, "\n==> 执行语句: %v \n==> 执行参数: %v \n==> 执行时间: %v\n",
+		l.Info(ctx.Ctx, "\n==> 执行语句: %v \n==> 执行参数: %v \n==> 执行时间: %v",
 			ctx.SQL, ctx.Args, ctx.ExecuteTime)
 	}
 }

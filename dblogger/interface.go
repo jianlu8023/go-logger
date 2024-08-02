@@ -29,3 +29,8 @@ type XormLoggerInterface interface {
 	ShowSQL(show ...bool)
 	IsShowSQL() bool
 }
+
+type Option interface {
+	Name() string
+	Value() interface{}
+}

@@ -18,7 +18,7 @@ const (
 )
 
 type Logger struct {
-	ZapLogger                 *zap.Logger
+	zapLogger                 *zap.Logger
 	LogLevel                  LogLevel
 	SlowThreshold             time.Duration
 	Colorful                  bool
@@ -32,9 +32,22 @@ func (l *Logger) String() string {
 	return string(bytes)
 }
 
-func NewDBLogger(config Config) *Logger {
+func NewDBLogger(config Config, options ...Option) *Logger {
+	for _, opt := range options {
+		if opt.Name() == customLoggerKey {
+			return &Logger{
+				zapLogger:                 opt.Value().(*zap.Logger),
+				LogLevel:                  config.LogLevel,
+				SlowThreshold:             config.SlowThreshold,
+				Colorful:                  config.Colorful,
+				IgnoreRecordNotFoundError: config.IgnoreRecordNotFoundError,
+				ParameterizedQueries:      config.ParameterizedQueries,
+				showSql:                   config.ShowSql,
+			}
+		}
+	}
 	return &Logger{
-		ZapLogger:                 config.Logger,
+		zapLogger:                 defaultDBLogger,
 		LogLevel:                  config.LogLevel,
 		SlowThreshold:             config.SlowThreshold,
 		Colorful:                  config.Colorful,
