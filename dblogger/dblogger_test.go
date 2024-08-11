@@ -153,7 +153,7 @@ func TestNewDBLogger(t *testing.T) {
 		var (
 			username   = "postgres"
 			password   = "123456"
-			host       = "192.168.58.110"
+			host       = "127.0.0.1"
 			port       = "5432"
 			database   = "basic"
 			searchPath = "public"
