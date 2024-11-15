@@ -6,9 +6,9 @@ import (
 	xormlogger "xorm.io/xorm/log"
 )
 
-func (l *Logger) BeforeSQL(ctx xormlogger.LogContext) {}
+func (l Logger) BeforeSQL(ctx xormlogger.LogContext) {}
 
-func (l *Logger) AfterSQL(ctx xormlogger.LogContext) {
+func (l Logger) AfterSQL(ctx xormlogger.LogContext) {
 	// var sessionPart string
 	// v := ctx.Ctx.Value(SessionIDKey)
 	// if key, ok := v.(string); ok {
@@ -27,31 +27,31 @@ func (l *Logger) AfterSQL(ctx xormlogger.LogContext) {
 	}
 }
 
-func (l *Logger) Debugf(format string, v ...interface{}) {
+func (l Logger) Debugf(format string, v ...interface{}) {
 	if l.LogLevel >= DEBUG {
 		l.logger(context.Background()).Sugar().Debugf(format, v...)
 	}
 }
 
-func (l *Logger) Errorf(format string, v ...interface{}) {
+func (l Logger) Errorf(format string, v ...interface{}) {
 	if l.LogLevel >= ERROR {
 		l.logger(context.Background()).Sugar().Errorf(format, v...)
 	}
 }
 
-func (l *Logger) Infof(format string, v ...interface{}) {
+func (l Logger) Infof(format string, v ...interface{}) {
 	if l.LogLevel >= INFO {
 		l.logger(context.Background()).Sugar().Infof(format, v...)
 	}
 }
 
-func (l *Logger) Warnf(format string, v ...interface{}) {
+func (l Logger) Warnf(format string, v ...interface{}) {
 	if l.LogLevel >= WARN {
 		l.logger(context.Background()).Sugar().Warnf(format, v...)
 	}
 }
 
-func (l *Logger) Level() xormlogger.LogLevel {
+func (l Logger) Level() xormlogger.LogLevel {
 	switch l.LogLevel {
 	case INFO:
 		return xormlogger.LOG_INFO
@@ -68,7 +68,7 @@ func (l *Logger) Level() xormlogger.LogLevel {
 	}
 }
 
-func (l *Logger) SetLevel(lv xormlogger.LogLevel) {
+func (l Logger) SetLevel(lv xormlogger.LogLevel) {
 	switch lv {
 	case xormlogger.LOG_DEBUG:
 		l.LogLevel = DEBUG
@@ -85,7 +85,7 @@ func (l *Logger) SetLevel(lv xormlogger.LogLevel) {
 	}
 }
 
-func (l *Logger) ShowSQL(show ...bool) {
+func (l Logger) ShowSQL(show ...bool) {
 	if len(show) == 0 {
 		l.showSql = true
 		return
@@ -93,6 +93,6 @@ func (l *Logger) ShowSQL(show ...bool) {
 	l.showSql = show[0]
 }
 
-func (l *Logger) IsShowSQL() bool {
+func (l Logger) IsShowSQL() bool {
 	return l.showSql
 }

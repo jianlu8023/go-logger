@@ -1,10 +1,10 @@
 package dblogger
 
 import (
+	"encoding/json"
 	"path/filepath"
+	"regexp"
 	"time"
-
-	"github.com/bytedance/sonic"
 )
 
 type Config struct {
@@ -18,7 +18,7 @@ type Config struct {
 }
 
 func (c *Config) String() string {
-	bytes, _ := sonic.Marshal(c)
+	bytes, _ := json.Marshal(c)
 	return string(bytes)
 }
 
@@ -30,4 +30,9 @@ const (
 var (
 	gormPackage    = filepath.Join("gorm.io", "gorm")
 	zapgormPackage = filepath.Join("moul.io", "zapgorm2")
+)
+
+var (
+	sqlRegexp                = regexp.MustCompile(`\?`)
+	numericPlaceHolderRegexp = regexp.MustCompile(`\$\d+`)
 )

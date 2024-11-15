@@ -27,7 +27,7 @@ type Logger struct {
 	showSql                   bool
 }
 
-func (l *Logger) String() string {
+func (l Logger) String() string {
 	bytes, _ := sonic.Marshal(l)
 	return string(bytes)
 }

@@ -6,17 +6,17 @@ import (
 	"testing"
 	"time"
 
+	glog "github.com/jianlu8023/go-logger"
+	gormv1 "github.com/jinzhu/gorm"
 	"go.uber.org/zap/zapcore"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"xorm.io/xorm"
-
-	glog "github.com/jianlu8023/go-logger"
 )
 
-func TestNewDBLogger(t *testing.T) {
-	newLogger := glog.NewLogger(
+var (
+	newLogger = glog.NewLogger(
 		&glog.Config{
 			DevelopMode: false,
 			LogLevel:    "info",
@@ -45,6 +45,10 @@ func TestNewDBLogger(t *testing.T) {
 			},
 		),
 	)
+)
+
+func TestNewDBLogger(t *testing.T) {
+
 	logger := NewDBLogger(
 		Config{
 			SlowThreshold:             200 * time.Millisecond,
@@ -200,4 +204,60 @@ func TestNewDBLogger(t *testing.T) {
 	}(logger)
 	wg.Wait()
 	newLogger.Sugar().Infof("test end ...")
+}
+
+func TestGormV1DbLogger(t *testing.T) {
+
+	var (
+		username = "root"
+		password = "123456"
+		host     = "127.0.0.1"
+		port     = "3306"
+		database = "basic"
+	)
+	mysqlDsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%s?charset=utf8&parseTime=True&loc=Local", username, password, host, port, database)
+
+	db, err := gormv1.Open("mysql", mysqlDsn)
+	if err != nil {
+		fmt.Println("connect db failed ", err)
+		panic(err)
+	} else {
+		db.DB().SetMaxIdleConns(50)
+		db.DB().SetMaxOpenConns(50)
+		db.DB().SetConnMaxLifetime(time.Minute)
+		db.Set("gorm:association_autoupdate", false).
+			Set("gorm:association_autocreate", false)
+		db.SingularTable(true)
+		db.LogMode(true)
+		db.Debug() // 打印所有日志
+		db.SetLogger(NewDBLogger(
+			Config{
+				SlowThreshold:             200 * time.Millisecond,
+				LogLevel:                  INFO,
+				Colorful:                  true,
+				IgnoreRecordNotFoundError: false,
+				ParameterizedQueries:      true,
+				ShowSql:                   true,
+			},
+			// WithCustomLogger(newLogger),
+		))
+	}
+
+	if err := db.Model(&Basic{}).FirstOrCreate(&Basic{
+		Name: "test",
+		Age:  18,
+		Sex:  0,
+	}).Error; err != nil {
+		fmt.Println("create failed", err)
+		return
+	}
+
+	var basic Basic
+	find := db.Model(&Basic{}).Where(Basic{Uid: 1}).First(&basic)
+
+	if find.Error != nil {
+		fmt.Println("find failed", find.Error)
+		return
+	}
+	fmt.Println("basic is", basic)
 }
