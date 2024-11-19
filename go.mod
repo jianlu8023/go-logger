@@ -18,6 +18,11 @@ require (
 	xorm.io/xorm v1.3.6
 )
 
+replace (
+	github.com/ugorji/go => github.com/ugorji/go v1.2.6
+
+)
+
 require (
 	github.com/bytedance/sonic/loader v0.2.0 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
