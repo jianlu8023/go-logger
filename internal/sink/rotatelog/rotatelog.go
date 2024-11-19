@@ -13,6 +13,6 @@ func (*Sink) Sync() error {
 	return nil
 }
 
-func NewRotatelog(log *rotateloggers.RotateLogs) zap.Sink {
+func NewRotateLog(log *rotateloggers.RotateLogs) zap.Sink {
 	return &Sink{RotateLogs: log}
 }
