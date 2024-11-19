@@ -113,7 +113,7 @@ func init() {
 		if err != nil {
 			return nil, err
 		}
-		return rsink.NewRotatelog(logs), nil
+		return rsink.NewRotateLog(logs), nil
 	}); err != nil {
 		panic(err)
 	}

@@ -9,31 +9,12 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-func logLevel(level string) zapcore.Level {
-	switch level {
-	case info:
-		return zapcore.InfoLevel
-	case debug:
-		return zapcore.DebugLevel
-	case warn:
-		return zapcore.WarnLevel
-	case _error:
-		return zapcore.ErrorLevel
-	case _panic:
-		return zapcore.PanicLevel
-	case fatal:
-		return zapcore.FatalLevel
-	default:
-		return zapcore.InfoLevel
-	}
-}
-
 func consoleCore(encoder zapcore.Encoder, lv zap.AtomicLevel) zapcore.Core {
 	return zapcore.NewCore(
 		encoder,
-		// zapcore.NewMultiWriteSyncer(
-		zapcore.AddSync(os.Stdout),
-		// ),
+		zapcore.NewMultiWriteSyncer(
+			zapcore.AddSync(os.Stdout),
+		),
 		lv,
 	)
 }
@@ -46,9 +27,9 @@ func lumberjackCore(conf *LumberjackConfig, encoder zapcore.Encoder, lv zap.Atom
 	if err == nil {
 		core := zapcore.NewCore(
 			encoder,
-			// zapcore.NewMultiWriteSyncer(
-			zapcore.AddSync(writeSyncer),
-			// ),
+			zapcore.NewMultiWriteSyncer(
+				zapcore.AddSync(writeSyncer),
+			),
 			lv,
 		)
 		return core
@@ -56,7 +37,7 @@ func lumberjackCore(conf *LumberjackConfig, encoder zapcore.Encoder, lv zap.Atom
 	return nil
 }
 
-func rotatelogCore(conf *RotateLogConfig, encoder zapcore.Encoder, lv zap.AtomicLevel) zapcore.Core {
+func rotateLogCore(conf *RotateLogConfig, encoder zapcore.Encoder, lv zap.AtomicLevel) zapcore.Core {
 	writeSyncer, cancel, err := zap.Open(NewRotateLogURL(conf))
 	defer func() {
 		cancel()
@@ -64,9 +45,9 @@ func rotatelogCore(conf *RotateLogConfig, encoder zapcore.Encoder, lv zap.Atomic
 	if err == nil {
 		core := zapcore.NewCore(
 			encoder,
-			// zapcore.NewMultiWriteSyncer(
-			zapcore.AddSync(writeSyncer),
-			// ),
+			zapcore.NewMultiWriteSyncer(
+				zapcore.AddSync(writeSyncer),
+			),
 			lv,
 		)
 		return core
@@ -77,32 +58,67 @@ func rotatelogCore(conf *RotateLogConfig, encoder zapcore.Encoder, lv zap.Atomic
 func consoleLogger(config *Config, options ...Option) *zap.Logger {
 	var (
 		cores []zapcore.Core
+
 		// consoleConfig 默认是consoleEncoderConfig
 		consoleConfig = consoleEncoderConfig
+
 		// fileConfig 默认是fileEncoderConfig
 		fileConfig = fileEncoderConfig
-		encoder    zapcore.Encoder
+
+		encoder zapcore.Encoder
 	)
 
 	lv := logLevel(strings.ToLower(config.LogLevel))
 	alv := zap.NewAtomicLevel()
 	alv.SetLevel(lv)
 
-	// 判断options 中实有option的name是consoleEncoderConfigKey
-	if ok, opt := containsOptions(options, consoleEncoderConfigKey); ok {
-		consoleConfig = opt.Value().(zapcore.EncoderConfig)
+	{
+		// 默认带 WithConsoleOutPut
+		if ok, _ := containsOptions(options, consoleOutPutKey); !ok {
+			options = append(options, WithConsoleOutPut())
+		}
+		// 判断options 中实有option的name是consoleEncoderConfigKey
+		if ok, opt := containsOptions(options, consoleEncoderConfigKey); ok {
+			consoleConfig = opt.Value().(zapcore.EncoderConfig)
+		}
 	}
 
-	// 判断options 中实有option的name是fileEncoderConfigKey
-	if ok, opt := containsOptions(options, fileEncoderConfigKey); ok {
-		fileConfig = opt.Value().(zapcore.EncoderConfig)
+	// 判断是否有 WithFileOutPut
+	if ok, _ := containsOptions(options, fileOutPutKey); ok {
+		// 判断options 中实有option的name是fileEncoderConfigKey
+		if ok, opt := containsOptions(options, fileEncoderConfigKey); ok {
+			fileConfig = opt.Value().(zapcore.EncoderConfig)
+		}
+
+		var lumberjack, rotateLog bool
+		if ok, _ := containsOptions(options, lumberjackKey); !ok {
+			lumberjack = true
+		}
+		if ok, _ := containsOptions(options, rotatelogKey); !ok {
+			rotateLog = true
+		}
+		if lumberjack && rotateLog {
+			panic("WithFileOutPut is set, but no output file config")
+		}
+	} else {
+		// 如果没有 WithFileOutPut，则判断是否有
+		if ok, _ := containsOptions(options, fileEncoderConfigKey); ok {
+			panic("WithFileOutPut is not set, but WithFileEncoderConfig is set")
+		} else if ok, _ = containsOptions(options, lumberjackKey); ok {
+			panic("WithFileOutPut is not set, but WithLumberjack is set")
+		} else if ok, _ = containsOptions(options, rotatelogKey); ok {
+			panic("WithFileOutPut is not set, but WithRotateLog is set")
+		}
 	}
 
 	{
-		// default console 输出
-		encoder = zapcore.NewConsoleEncoder(consoleConfig)
-		cores = append(cores, consoleCore(encoder, alv))
+		if ok, _ := containsOptions(options, consoleOutPutKey); ok {
+			// default console 输出
+			encoder = zapcore.NewConsoleEncoder(consoleConfig)
+			cores = append(cores, consoleCore(encoder, alv))
+		}
 	}
+
 	for _, option := range options {
 		switch option.Name() {
 		case lumberjackKey:
@@ -115,7 +131,7 @@ func consoleLogger(config *Config, options ...Option) *zap.Logger {
 		case rotatelogKey:
 			logConfig := option.Value().(*RotateLogConfig)
 			encoder = zapcore.NewConsoleEncoder(fileConfig)
-			core := rotatelogCore(logConfig, encoder, alv)
+			core := rotateLogCore(logConfig, encoder, alv)
 			if core != nil {
 				cores = append(cores, core)
 			}
@@ -138,20 +154,52 @@ func jsonLogger(config *Config, options ...Option) *zap.Logger {
 	alv := zap.NewAtomicLevel()
 	alv.SetLevel(lv)
 
-	// 判断options 中实有option的name是consoleEncoderConfigKey
-	if ok, opt := containsOptions(options, consoleEncoderConfigKey); ok {
-		consoleConfig = opt.Value().(zapcore.EncoderConfig)
+	{
+		// 默认带 WithConsoleOutPut
+		if ok, _ := containsOptions(options, consoleOutPutKey); !ok {
+			options = append(options, WithConsoleOutPut())
+		}
+		// 判断options 中实有option的name是consoleEncoderConfigKey
+		if ok, opt := containsOptions(options, consoleEncoderConfigKey); ok {
+			consoleConfig = opt.Value().(zapcore.EncoderConfig)
+		}
 	}
 
-	// 判断options 中实有option的name是fileEncoderConfigKey
-	if ok, opt := containsOptions(options, fileEncoderConfigKey); ok {
-		fileConfig = opt.Value().(zapcore.EncoderConfig)
+	// 判断是否有 WithFileOutPut
+	if ok, _ := containsOptions(options, fileOutPutKey); ok {
+		// 判断options 中实有option的name是fileEncoderConfigKey
+		if ok, opt := containsOptions(options, fileEncoderConfigKey); ok {
+			fileConfig = opt.Value().(zapcore.EncoderConfig)
+		}
+		var lumberjack, rotateLog bool
+		if ok, _ := containsOptions(options, lumberjackKey); !ok {
+			lumberjack = true
+		}
+		if ok, _ := containsOptions(options, rotatelogKey); !ok {
+			rotateLog = true
+		}
+		if lumberjack && rotateLog {
+			panic("WithFileOutPut is set, but no output file config")
+		}
+	} else {
+		// 如果没有 WithFileOutPut，则判断是否有
+		if ok, _ := containsOptions(options, fileEncoderConfigKey); ok {
+			panic("WithFileOutPut is not set, but WithFileEncoderConfig is set")
+		} else if ok, _ = containsOptions(options, lumberjackKey); ok {
+			panic("WithFileOutPut is not set, but WithLumberjack is set")
+		} else if ok, _ = containsOptions(options, rotatelogKey); ok {
+			panic("WithFileOutPut is not set, but WithRotateLog is set")
+		}
 	}
 
 	{
-		encoder = zapcore.NewJSONEncoder(consoleConfig)
-		cores = append(cores, consoleCore(encoder, alv))
+		if ok, _ := containsOptions(options, consoleOutPutKey); ok {
+			// default console 输出
+			encoder = zapcore.NewJSONEncoder(consoleConfig)
+			cores = append(cores, consoleCore(encoder, alv))
+		}
 	}
+
 	for _, option := range options {
 		switch option.Name() {
 		case lumberjackKey:
@@ -164,7 +212,7 @@ func jsonLogger(config *Config, options ...Option) *zap.Logger {
 		case rotatelogKey:
 			logConfig := option.Value().(*RotateLogConfig)
 			encoder = zapcore.NewJSONEncoder(fileConfig)
-			core := rotatelogCore(logConfig, encoder, alv)
+			core := rotateLogCore(logConfig, encoder, alv)
 			if core != nil {
 				cores = append(cores, core)
 			}
@@ -173,7 +221,7 @@ func jsonLogger(config *Config, options ...Option) *zap.Logger {
 	return genLogger(cores, config)
 }
 
-func zaplogfmtLogger(config *Config, options ...Option) *zap.Logger {
+func zapLogFmtLogger(config *Config, options ...Option) *zap.Logger {
 	var (
 		cores []zapcore.Core
 		// consoleConfig 默认是consoleEncoderConfig
@@ -187,19 +235,52 @@ func zaplogfmtLogger(config *Config, options ...Option) *zap.Logger {
 	alv := zap.NewAtomicLevel()
 	alv.SetLevel(lv)
 
-	// 判断options 中实有option的name是consoleEncoderConfigKey
-	if ok, opt := containsOptions(options, consoleEncoderConfigKey); ok {
-		consoleConfig = opt.Value().(zapcore.EncoderConfig)
+	{
+		// 默认带 WithConsoleOutPut
+		if ok, _ := containsOptions(options, consoleOutPutKey); !ok {
+			options = append(options, WithConsoleOutPut())
+		}
+
+		// 判断options 中实有option的name是consoleEncoderConfigKey
+		if ok, opt := containsOptions(options, consoleEncoderConfigKey); ok {
+			consoleConfig = opt.Value().(zapcore.EncoderConfig)
+		}
 	}
 
-	// 判断options 中实有option的name是fileEncoderConfigKey
-	if ok, opt := containsOptions(options, fileEncoderConfigKey); ok {
-		fileConfig = opt.Value().(zapcore.EncoderConfig)
+	// 判断是否有 WithFileOutPut
+	if ok, _ := containsOptions(options, fileOutPutKey); ok {
+		// 判断options 中实有option的name是fileEncoderConfigKey
+		if ok, opt := containsOptions(options, fileEncoderConfigKey); ok {
+			fileConfig = opt.Value().(zapcore.EncoderConfig)
+		}
+		var lumberjack, rotateLog bool
+		if ok, _ := containsOptions(options, lumberjackKey); !ok {
+			lumberjack = true
+		}
+		if ok, _ := containsOptions(options, rotatelogKey); !ok {
+			rotateLog = true
+		}
+		if lumberjack && rotateLog {
+			panic("WithFileOutPut is set, but no output file config")
+		}
+	} else {
+		// 如果没有 WithFileOutPut，则判断是否有
+		if ok, _ := containsOptions(options, fileEncoderConfigKey); ok {
+			panic("WithFileOutPut is not set, but WithFileEncoderConfig is set")
+		} else if ok, _ = containsOptions(options, lumberjackKey); ok {
+			panic("WithFileOutPut is not set, but WithLumberjack is set")
+		} else if ok, _ = containsOptions(options, rotatelogKey); ok {
+			panic("WithFileOutPut is not set, but WithRotateLog is set")
+		}
 	}
 
 	{
-		encoder = zaplogfmt.NewEncoder(consoleConfig)
-		cores = append(cores, consoleCore(encoder, alv))
+
+		if ok, _ := containsOptions(options, consoleOutPutKey); ok {
+			// default console 输出
+			encoder = zaplogfmt.NewEncoder(consoleConfig)
+			cores = append(cores, consoleCore(encoder, alv))
+		}
 	}
 
 	for _, option := range options {
@@ -214,7 +295,7 @@ func zaplogfmtLogger(config *Config, options ...Option) *zap.Logger {
 		case rotatelogKey:
 			logConfig := option.Value().(*RotateLogConfig)
 			encoder = zaplogfmt.NewEncoder(fileConfig)
-			core := rotatelogCore(logConfig, encoder, alv)
+			core := rotateLogCore(logConfig, encoder, alv)
 			if core != nil {
 				cores = append(cores, core)
 			}

@@ -78,7 +78,7 @@ func TestNewLogger(t *testing.T) {
 			StacktraceKey: "stacktrace",
 			FunctionKey:   "func",
 			LineEnding:    zapcore.DefaultLineEnding,
-			EncodeLevel:   zapcore.CapitalLevelEncoder,
+			EncodeLevel:   CustomColorCapitalLevelEncoder,
 			EncodeTime: func(date time.Time, encoder zapcore.PrimitiveArrayEncoder) {
 				encoder.AppendString(date.Format("2006-01-02 15:04:05.00000000"))
 			},
@@ -102,25 +102,30 @@ func TestNewLogger(t *testing.T) {
 			EncodeCaller:   zapcore.ShortCallerEncoder,
 		}),
 		WithConsoleFormat(),
+		WithFileOutPut(),
 	)
 	ticker(logger)
 
 }
 func TestNewSugaredLogger(t *testing.T) {
 
-	logger := NewSugaredLogger(&Config{
-		LogLevel:    "DEBUG",
-		DevelopMode: true,
-		ModuleName:  "[app]",
-		StackLevel:  "error",
-		Caller:      true,
-	}, WithRotateLog(&RotateLogConfig{
-		FileName:  "./logs/rotatelog-sugared.log",
-		LocalTime: true,
-	}), WithLumberjack(&LumberjackConfig{
-		FileName:  "./logs/lumberjack-sugared.log",
-		Localtime: true,
-	}))
+	logger := NewSugaredLogger(
+		&Config{
+			LogLevel:    "DEBUG",
+			DevelopMode: true,
+			ModuleName:  "[app]",
+			StackLevel:  "error",
+			Caller:      true,
+		},
+		WithRotateLog(&RotateLogConfig{
+			FileName:  "./logs/rotatelog-sugared.log",
+			LocalTime: true,
+		}),
+		WithLumberjack(&LumberjackConfig{
+			FileName:  "./logs/lumberjack-sugared.log",
+			Localtime: true,
+		}),
+	)
 	logger.Errorf("error info %s", errors.New("this is a test error"))
 	tickerSugared(logger)
 
