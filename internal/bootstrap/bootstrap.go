@@ -9,9 +9,9 @@ import (
 	"go.uber.org/zap"
 	"gopkg.in/natefinch/lumberjack.v2"
 
-	"github.com/jianlu8023/go-logger/internal/define"
-	lsink "github.com/jianlu8023/go-logger/internal/sink/lumberjack"
-	rsink "github.com/jianlu8023/go-logger/internal/sink/rotatelog"
+	"github.com/jianlu8023/go-logger/v2/internal/define"
+	lsink "github.com/jianlu8023/go-logger/v2/internal/sink/lumberjack"
+	rsink "github.com/jianlu8023/go-logger/v2/internal/sink/rotatelog"
 )
 
 func init() {

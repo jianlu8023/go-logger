@@ -6,7 +6,7 @@ import (
 
 	"github.com/bytedance/sonic"
 
-	"github.com/jianlu8023/go-logger/internal/define"
+	"github.com/jianlu8023/go-logger/v2/internal/define"
 )
 
 type Config struct {

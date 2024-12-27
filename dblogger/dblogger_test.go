@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	glog "github.com/jianlu8023/go-logger"
+	glog "github.com/jianlu8023/go-logger/v2"
 	gormv1 "github.com/jinzhu/gorm"
 	"go.uber.org/zap/zapcore"
 	"gorm.io/driver/mysql"
@@ -17,13 +17,10 @@ import (
 
 var (
 	newLogger = glog.NewLogger(
-		&glog.Config{
-			DevelopMode: false,
-			LogLevel:    "info",
-			Caller:      true,
-			StackLevel:  "error",
-			ModuleName:  "[db]",
-		},
+		glog.WithLogLevel("info"),
+		glog.WithCaller(),
+		glog.WithStackLogLevel("error"),
+		glog.WithModuleName("[db]"),
 		glog.WithConsoleFormat(),
 		glog.WithConsoleConfig(
 			zapcore.EncoderConfig{

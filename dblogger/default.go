@@ -3,7 +3,7 @@ package dblogger
 import (
 	"go.uber.org/zap/zapcore"
 
-	glog "github.com/jianlu8023/go-logger"
+	glog "github.com/jianlu8023/go-logger/v2"
 )
 
 var (
@@ -25,13 +25,10 @@ var (
 	}
 
 	defaultDBLogger = glog.NewLogger(
-		&glog.Config{
-			LogLevel:    "DEBUG",
-			DevelopMode: true,
-			StackLevel:  "ERROR",
-			Caller:      false,
-			ModuleName:  "",
-		},
+		glog.WithCaller(),
+		glog.WithDevelopMode(),
+		glog.WithLogLevel("DEBUG"),
+		glog.WithStackLogLevel("ERROR"),
 		glog.WithConsoleFormat(),
 		glog.WithConsoleConfig(defaultConsoleConfig),
 	)

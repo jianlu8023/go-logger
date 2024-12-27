@@ -8,34 +8,29 @@ import (
 	"testing"
 	"time"
 
-	"github.com/labstack/gommon/log"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-func TestNewLoggerWithNoFile(t *testing.T) {
+func TestNewLoggerWithoutConsoleOutPut(t *testing.T) {
 	logger := NewLogger(
-		&Config{
-			LogLevel:    "DEBUG",
-			DevelopMode: true,
-			ModuleName:  "[sdk]",
-			Caller:      true,
-			StackLevel:  "",
-		},
-		WithConsoleFormat(),
+		WithOutConsoleOutPut(),
 	)
+	logger.Debug("test debug")
+}
+
+func TestNewLoggerWithNoFile(t *testing.T) {
+	logger := NewLogger()
 	ticker(logger)
 }
 
 func TestNewLoggerWithLumberJack(t *testing.T) {
 	logger := NewLogger(
-		&Config{
-			LogLevel:    "info",
-			DevelopMode: false,
-			ModuleName:  "[app]",
-			StackLevel:  "error",
-			Caller:      true,
-		},
+		WithLogLevel("info"),
+		WithModuleName("[app]"),
+		WithStackLogLevel("error"),
+		WithCaller(),
+		WithFileOutPut(),
 		WithLumberjack(&LumberjackConfig{
 			FileName:   "./logs/lumberjack-only-logger.log",
 			Localtime:  true,
@@ -53,13 +48,11 @@ func TestNewLoggerWithLumberJack(t *testing.T) {
 
 func TestNewLogger(t *testing.T) {
 	logger := NewLogger(
-		&Config{
-			LogLevel:    "debug",
-			DevelopMode: true,
-			StackLevel:  "",
-			ModuleName:  "[SDK]",
-			Caller:      true,
-		},
+
+		WithLogLevel("debug"),
+		WithDevelopMode(),
+		WithModuleName("[sdk]"),
+		WithCaller(),
 		WithRotateLog(&RotateLogConfig{
 			FileName:  "./logs/rotatelog-logger.log",
 			LocalTime: true,
@@ -103,20 +96,21 @@ func TestNewLogger(t *testing.T) {
 		}),
 		WithConsoleFormat(),
 		WithFileOutPut(),
+		WithConsoleOutPut(),
 	)
 	ticker(logger)
 
 }
+
 func TestNewSugaredLogger(t *testing.T) {
 
 	logger := NewSugaredLogger(
-		&Config{
-			LogLevel:    "DEBUG",
-			DevelopMode: true,
-			ModuleName:  "[app]",
-			StackLevel:  "error",
-			Caller:      true,
-		},
+		WithFileOutPut(),
+		WithLogLevel("DEBUG"),
+		WithDevelopMode(),
+		WithModuleName("[app]"),
+		WithStackLogLevel("error"),
+		WithCaller(),
 		WithRotateLog(&RotateLogConfig{
 			FileName:  "./logs/rotatelog-sugared.log",
 			LocalTime: true,
@@ -147,8 +141,8 @@ func tickerSugared(logger *zap.SugaredLogger) {
 					Age:  18,
 				})
 				logger.Warnf("warn %s", "log")
-				log.Debugf("debug %s", "log")
-				log.Errorf("error %s", "log")
+				logger.Debugf("debug %s", "log")
+				logger.Errorf("error %s", "log")
 				logger.Errorf("_error %s", errors.New("test _error"))
 			}
 		}

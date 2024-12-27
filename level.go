@@ -31,3 +31,13 @@ func logLevel(level string) zapcore.Level {
 		return zapcore.InfoLevel
 	}
 }
+
+// getLogLevel 从options中获取日志级别
+func getLogLevel(options []Option) zapcore.Level {
+	for _, opt := range options {
+		if opt.Name() == logLevelKey {
+			return opt.Value().(zapcore.Level)
+		}
+	}
+	return zapcore.DebugLevel
+}

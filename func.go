@@ -1,8 +1,9 @@
 package go_logger
 
 import (
+	"fmt"
 	"os"
-	"strings"
+	"slices"
 
 	zaplogfmt "github.com/sykesm/zap-logfmt"
 	"go.uber.org/zap"
@@ -55,28 +56,49 @@ func rotateLogCore(conf *RotateLogConfig, encoder zapcore.Encoder, lv zap.Atomic
 	return nil
 }
 
-func consoleLogger(config *Config, options ...Option) *zap.Logger {
+func consoleLogger(options ...Option) *zap.Logger {
 	var (
 		cores []zapcore.Core
 
-		// consoleConfig 默认是consoleEncoderConfig
+		// consoleConfig 默认是 consoleEncoderConfig
 		consoleConfig = consoleEncoderConfig
 
-		// fileConfig 默认是fileEncoderConfig
+		// fileConfig 默认是 fileEncoderConfig
 		fileConfig = fileEncoderConfig
 
 		encoder zapcore.Encoder
 	)
 
-	lv := logLevel(strings.ToLower(config.LogLevel))
-	alv := zap.NewAtomicLevel()
-	alv.SetLevel(lv)
+	if len(options) == 0 {
+		fmt.Println("no options selected")
+		fmt.Println("create logger with debug level and console output")
 
-	{
-		// 默认带 WithConsoleOutPut
-		if ok, _ := containsOptions(options, consoleOutPutKey); !ok {
+		options = append(options, WithConsoleOutPut())
+		options = append(options, WithLogLevel("debug"))
+	} else {
+		// no log level selected use debug level
+		if ok, _ := containsOptions(options, logLevelKey); !ok {
+			fmt.Println("no log level selected use debug level")
+			options = append(options, WithLogLevel("debug"))
+		}
+		// without console output selected, delete console output option
+		if ok, _ := containsOptions(options, withoutConsoleOutPutKey); ok {
+			fmt.Println("without console output selected")
+			options = slices.DeleteFunc(options, func(option Option) bool {
+				return option.Name() == consoleOutPutKey
+			})
+			if ok, _ := containsOptions(options, fileOutPutKey); !ok {
+				panic("WithOutConsoleOutPut is set, but no output selected")
+			}
+		} else {
 			options = append(options, WithConsoleOutPut())
 		}
+	}
+
+	alv := zap.NewAtomicLevel()
+	alv.SetLevel(getLogLevel(options))
+
+	{
 		// 判断options 中实有option的name是consoleEncoderConfigKey
 		if ok, opt := containsOptions(options, consoleEncoderConfigKey); ok {
 			consoleConfig = opt.Value().(zapcore.EncoderConfig)
@@ -98,16 +120,16 @@ func consoleLogger(config *Config, options ...Option) *zap.Logger {
 			rotateLog = true
 		}
 		if lumberjack && rotateLog {
-			panic("WithFileOutPut is set, but no output file config")
+			panic("WithFileOutPut set, but no output file config")
 		}
 	} else {
 		// 如果没有 WithFileOutPut，则判断是否有
 		if ok, _ := containsOptions(options, fileEncoderConfigKey); ok {
-			panic("WithFileOutPut is not set, but WithFileEncoderConfig is set")
+			panic("WithFileOutPut not set, but WithFileEncoderConfig set")
 		} else if ok, _ = containsOptions(options, lumberjackKey); ok {
-			panic("WithFileOutPut is not set, but WithLumberjack is set")
+			panic("WithFileOutPut not set, but WithLumberjack set")
 		} else if ok, _ = containsOptions(options, rotatelogKey); ok {
-			panic("WithFileOutPut is not set, but WithRotateLog is set")
+			panic("WithFileOutPut not set, but WithRotateLog set")
 		}
 	}
 
@@ -119,6 +141,12 @@ func consoleLogger(config *Config, options ...Option) *zap.Logger {
 		}
 	}
 
+	var (
+		moduleName                  = ""
+		developMode                 = false
+		callerMode                  = false
+		stackLogLevel zapcore.Level = -2
+	)
 	for _, option := range options {
 		switch option.Name() {
 		case lumberjackKey:
@@ -135,12 +163,20 @@ func consoleLogger(config *Config, options ...Option) *zap.Logger {
 			if core != nil {
 				cores = append(cores, core)
 			}
+		case moduleNameKey:
+			moduleName = option.Value().(string)
+		case developModeKey:
+			developMode = option.Value().(bool)
+		case callerKey:
+			callerMode = option.Value().(bool)
+		case stackLogLevelKey:
+			stackLogLevel = option.Value().(zapcore.Level)
 		}
 	}
-	return genLogger(cores, config)
+	return genLogger(cores, moduleName, developMode, callerMode, stackLogLevel)
 }
 
-func jsonLogger(config *Config, options ...Option) *zap.Logger {
+func jsonLogger(options ...Option) *zap.Logger {
 	var (
 		cores []zapcore.Core
 		// consoleConfig 默认是consoleEncoderConfig
@@ -149,16 +185,36 @@ func jsonLogger(config *Config, options ...Option) *zap.Logger {
 		fileConfig = fileEncoderConfig
 		encoder    zapcore.Encoder
 	)
+	if len(options) == 0 {
+		fmt.Println("no options selected")
+		fmt.Println("create logger with debug level and console output")
 
-	lv := logLevel(strings.ToLower(config.LogLevel))
-	alv := zap.NewAtomicLevel()
-	alv.SetLevel(lv)
-
-	{
-		// 默认带 WithConsoleOutPut
-		if ok, _ := containsOptions(options, consoleOutPutKey); !ok {
+		options = append(options, WithConsoleOutPut())
+		options = append(options, WithLogLevel("debug"))
+	} else {
+		// no log level selected use debug level
+		if ok, _ := containsOptions(options, logLevelKey); !ok {
+			fmt.Println("no log level selected use debug level")
+			options = append(options, WithLogLevel("debug"))
+		}
+		// without console output selected, delete console output option
+		if ok, _ := containsOptions(options, withoutConsoleOutPutKey); ok {
+			fmt.Println("without console output selected")
+			options = slices.DeleteFunc(options, func(option Option) bool {
+				return option.Name() == consoleOutPutKey
+			})
+			if ok, _ := containsOptions(options, fileOutPutKey); !ok {
+				panic("WithOutConsoleOutPut is set, but no output selected")
+			}
+		} else {
 			options = append(options, WithConsoleOutPut())
 		}
+	}
+
+	alv := zap.NewAtomicLevel()
+	alv.SetLevel(getLogLevel(options))
+
+	{
 		// 判断options 中实有option的name是consoleEncoderConfigKey
 		if ok, opt := containsOptions(options, consoleEncoderConfigKey); ok {
 			consoleConfig = opt.Value().(zapcore.EncoderConfig)
@@ -200,6 +256,12 @@ func jsonLogger(config *Config, options ...Option) *zap.Logger {
 		}
 	}
 
+	var (
+		moduleName                  = ""
+		developMode                 = false
+		callerMode                  = false
+		stackLogLevel zapcore.Level = -2
+	)
 	for _, option := range options {
 		switch option.Name() {
 		case lumberjackKey:
@@ -216,12 +278,20 @@ func jsonLogger(config *Config, options ...Option) *zap.Logger {
 			if core != nil {
 				cores = append(cores, core)
 			}
+		case moduleNameKey:
+			moduleName = option.Value().(string)
+		case developModeKey:
+			developMode = option.Value().(bool)
+		case callerKey:
+			callerMode = option.Value().(bool)
+		case stackLogLevelKey:
+			stackLogLevel = option.Value().(zapcore.Level)
 		}
 	}
-	return genLogger(cores, config)
+	return genLogger(cores, moduleName, developMode, callerMode, stackLogLevel)
 }
 
-func zapLogFmtLogger(config *Config, options ...Option) *zap.Logger {
+func zapLogFmtLogger(options ...Option) *zap.Logger {
 	var (
 		cores []zapcore.Core
 		// consoleConfig 默认是consoleEncoderConfig
@@ -230,17 +300,36 @@ func zapLogFmtLogger(config *Config, options ...Option) *zap.Logger {
 		fileConfig = fileEncoderConfig
 		encoder    zapcore.Encoder
 	)
+	if len(options) == 0 {
+		fmt.Println("no options selected")
+		fmt.Println("create logger with debug level and console output")
 
-	lv := logLevel(strings.ToLower(config.LogLevel))
-	alv := zap.NewAtomicLevel()
-	alv.SetLevel(lv)
-
-	{
-		// 默认带 WithConsoleOutPut
-		if ok, _ := containsOptions(options, consoleOutPutKey); !ok {
+		options = append(options, WithConsoleOutPut())
+		options = append(options, WithLogLevel("debug"))
+	} else {
+		// no log level selected use debug level
+		if ok, _ := containsOptions(options, logLevelKey); !ok {
+			fmt.Println("no log level selected use debug level")
+			options = append(options, WithLogLevel("debug"))
+		}
+		// without console output selected, delete console output option
+		if ok, _ := containsOptions(options, withoutConsoleOutPutKey); ok {
+			fmt.Println("without console output selected")
+			options = slices.DeleteFunc(options, func(option Option) bool {
+				return option.Name() == consoleOutPutKey
+			})
+			if ok, _ := containsOptions(options, fileOutPutKey); !ok {
+				panic("WithOutConsoleOutPut is set, but no output selected")
+			}
+		} else {
 			options = append(options, WithConsoleOutPut())
 		}
+	}
 
+	alv := zap.NewAtomicLevel()
+	alv.SetLevel(getLogLevel(options))
+
+	{
 		// 判断options 中实有option的name是consoleEncoderConfigKey
 		if ok, opt := containsOptions(options, consoleEncoderConfigKey); ok {
 			consoleConfig = opt.Value().(zapcore.EncoderConfig)
@@ -282,7 +371,12 @@ func zapLogFmtLogger(config *Config, options ...Option) *zap.Logger {
 			cores = append(cores, consoleCore(encoder, alv))
 		}
 	}
-
+	var (
+		moduleName                  = ""
+		developMode                 = false
+		callerMode                  = false
+		stackLogLevel zapcore.Level = -2
+	)
 	for _, option := range options {
 		switch option.Name() {
 		case lumberjackKey:
@@ -299,27 +393,35 @@ func zapLogFmtLogger(config *Config, options ...Option) *zap.Logger {
 			if core != nil {
 				cores = append(cores, core)
 			}
+		case moduleNameKey:
+			moduleName = option.Value().(string)
+		case developModeKey:
+			developMode = option.Value().(bool)
+		case callerKey:
+			callerMode = option.Value().(bool)
+		case stackLogLevelKey:
+			stackLogLevel = option.Value().(zapcore.Level)
 		}
 	}
-	return genLogger(cores, config)
+	return genLogger(cores, moduleName, developMode, callerMode, stackLogLevel)
 }
 
-func genLogger(cores []zapcore.Core, config *Config) *zap.Logger {
+func genLogger(cores []zapcore.Core, moduleName string, developMode, callerMode bool, stackLogLevel zapcore.Level) *zap.Logger {
 	core := zapcore.NewTee(cores...)
 	logger := zap.New(core)
-	if len(config.ModuleName) != 0 {
-		logger = logger.Named(config.ModuleName)
+	if len(moduleName) != 0 {
+		logger = logger.Named(moduleName)
 	}
-	if config.DevelopMode {
+	if developMode {
 		logger = logger.WithOptions(zap.Development())
 	}
-	if config.Caller {
+	if callerMode {
 		logger = logger.WithOptions(zap.AddCaller())
+		logger = logger.WithOptions(zap.AddCallerSkip(1))
 	}
-	if len(config.StackLevel) != 0 {
-		logger = logger.WithOptions(zap.AddStacktrace(logLevel(strings.ToLower(config.StackLevel))))
+	if stackLogLevel > -2 {
+		logger = logger.WithOptions(zap.AddStacktrace(stackLogLevel))
 	}
-	// logger = logger.WithOptions(zap.AddCallerSkip(1))
 	defer func(logger *zap.Logger) {
 		_ = logger.Sync()
 	}(logger)
