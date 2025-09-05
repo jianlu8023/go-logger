@@ -2,6 +2,7 @@ package go_logger
 
 import (
 	"time"
+        "fmt"
 
 	"go.uber.org/zap/zapcore"
 
@@ -50,7 +51,7 @@ func CustomTimeEncoder(time time.Time, encoder zapcore.PrimitiveArrayEncoder) {
 }
 
 func CustomCapitalLevelEncoder(level zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
-	enc.AppendString("[" + level.CapitalString() + "]")
+	enc.AppendString("[" + fmt.Sprintf("%-5s", level.CapitalString()) + "]")
 }
 
 func CustomColorCapitalLevelEncoder(level zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
@@ -59,9 +60,9 @@ func CustomColorCapitalLevelEncoder(level zapcore.Level, enc zapcore.PrimitiveAr
 	case zapcore.DebugLevel:
 		colorStr = colour.Magenta(level.CapitalString())
 	case zapcore.InfoLevel:
-		colorStr = colour.Blue(level.CapitalString())
+		colorStr = colour.Blue(level.CapitalString() + " ")
 	case zapcore.WarnLevel:
-		colorStr = colour.Yellow(level.CapitalString())
+		colorStr = colour.Yellow(level.CapitalString() + " ")
 	case zapcore.ErrorLevel, zapcore.DPanicLevel, zapcore.PanicLevel, zapcore.FatalLevel:
 		colorStr = colour.Red(level.CapitalString())
 	}
