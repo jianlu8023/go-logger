@@ -1,8 +1,8 @@
 package go_logger
 
 import (
+	"fmt"
 	"time"
-        "fmt"
 
 	"go.uber.org/zap/zapcore"
 
@@ -15,34 +15,36 @@ const (
 
 var (
 	consoleEncoderConfig = zapcore.EncoderConfig{
-		MessageKey:     "msg",
-		LevelKey:       "level",
-		TimeKey:        "time",
-		NameKey:        "logger",
-		CallerKey:      "caller",
-		StacktraceKey:  "stacktrace",
-		FunctionKey:    "func",
-		LineEnding:     zapcore.DefaultLineEnding,
-		EncodeLevel:    CustomColorCapitalLevelEncoder,
-		EncodeTime:     CustomTimeEncoder,
-		EncodeDuration: zapcore.SecondsDurationEncoder,
-		EncodeCaller:   zapcore.ShortCallerEncoder,
-		EncodeName:     zapcore.FullNameEncoder,
+		MessageKey:       "msg",
+		LevelKey:         "level",
+		TimeKey:          "time",
+		NameKey:          "logger",
+		CallerKey:        "caller",
+		StacktraceKey:    "stacktrace",
+		FunctionKey:      "func",
+		LineEnding:       zapcore.DefaultLineEnding,
+		EncodeLevel:      CustomColorCapitalLevelEncoder,
+		EncodeTime:       CustomTimeEncoder,
+		EncodeDuration:   zapcore.SecondsDurationEncoder,
+		EncodeCaller:     zapcore.ShortCallerEncoder,
+		EncodeName:       zapcore.FullNameEncoder,
+		ConsoleSeparator: "  ",
 	}
 	fileEncoderConfig = zapcore.EncoderConfig{
-		MessageKey:     "msg",
-		LevelKey:       "level",
-		TimeKey:        "time",
-		NameKey:        "logger",
-		CallerKey:      "caller",
-		StacktraceKey:  "stacktrace",
-		FunctionKey:    "func",
-		LineEnding:     zapcore.DefaultLineEnding,
-		EncodeLevel:    CustomCapitalLevelEncoder,
-		EncodeTime:     CustomTimeEncoder,
-		EncodeDuration: zapcore.SecondsDurationEncoder,
-		EncodeCaller:   zapcore.ShortCallerEncoder,
-		EncodeName:     zapcore.FullNameEncoder,
+		MessageKey:       "msg",
+		LevelKey:         "level",
+		TimeKey:          "time",
+		NameKey:          "logger",
+		CallerKey:        "caller",
+		StacktraceKey:    "stacktrace",
+		FunctionKey:      "func",
+		LineEnding:       zapcore.DefaultLineEnding,
+		EncodeLevel:      CustomCapitalLevelEncoder,
+		EncodeTime:       CustomTimeEncoder,
+		EncodeDuration:   zapcore.SecondsDurationEncoder,
+		EncodeCaller:     zapcore.ShortCallerEncoder,
+		EncodeName:       zapcore.FullNameEncoder,
+		ConsoleSeparator: "  ",
 	}
 )
 
@@ -65,6 +67,7 @@ func CustomColorCapitalLevelEncoder(level zapcore.Level, enc zapcore.PrimitiveAr
 		colorStr = colour.Yellow(level.CapitalString() + " ")
 	case zapcore.ErrorLevel, zapcore.DPanicLevel, zapcore.PanicLevel, zapcore.FatalLevel:
 		colorStr = colour.Red(level.CapitalString())
+	default:
 	}
 	enc.AppendString("[" + colorStr + "]")
 }

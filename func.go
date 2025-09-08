@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 	"slices"
-
+	
 	zaplogfmt "github.com/sykesm/zap-logfmt"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -59,27 +59,26 @@ func rotateLogCore(conf *RotateLogConfig, encoder zapcore.Encoder, lv zap.Atomic
 func consoleLogger(options ...Option) *zap.Logger {
 	var (
 		cores []zapcore.Core
-
+		
 		// consoleConfig 默认是 consoleEncoderConfig
 		consoleConfig = consoleEncoderConfig
-
+		
 		// fileConfig 默认是 fileEncoderConfig
 		fileConfig = fileEncoderConfig
-
+		
 		encoder zapcore.Encoder
 	)
-
+	
 	if len(options) == 0 {
-		fmt.Println("no options selected")
 		fmt.Println("create logger with debug level and console output")
-
+		
 		options = append(options, WithConsoleOutPut())
-		options = append(options, WithLogLevel("debug"))
+		options = append(options, WithDefaultLogLevel(debug))
 	} else {
 		// no log level selected use debug level
-		if ok, _ := containsOptions(options, logLevelKey); !ok {
+		if ok, _ := containsOptions(options, defaultLogLevelKey); !ok {
 			fmt.Println("no log level selected use debug level")
-			options = append(options, WithLogLevel("debug"))
+			options = append(options, WithDefaultLogLevel(debug))
 		}
 		// without console output selected, delete console output option
 		if ok, _ := containsOptions(options, withoutConsoleOutPutKey); ok {
@@ -94,24 +93,24 @@ func consoleLogger(options ...Option) *zap.Logger {
 			options = append(options, WithConsoleOutPut())
 		}
 	}
-
-	alv := zap.NewAtomicLevel()
-	alv.SetLevel(getLogLevel(options))
-
+	
+	// alv := zap.NewAtomicLevel()
+	// alv.SetLevel(getLogLevel(options))
+	
 	{
 		// 判断options 中实有option的name是consoleEncoderConfigKey
 		if ok, opt := containsOptions(options, consoleEncoderConfigKey); ok {
 			consoleConfig = opt.Value().(zapcore.EncoderConfig)
 		}
 	}
-
+	
 	// 判断是否有 WithFileOutPut
 	if ok, _ := containsOptions(options, fileOutPutKey); ok {
 		// 判断options 中实有option的name是fileEncoderConfigKey
 		if ok, opt := containsOptions(options, fileEncoderConfigKey); ok {
 			fileConfig = opt.Value().(zapcore.EncoderConfig)
 		}
-
+		
 		var lumberjack, rotateLog bool
 		if ok, _ := containsOptions(options, lumberjackKey); !ok {
 			lumberjack = true
@@ -132,34 +131,39 @@ func consoleLogger(options ...Option) *zap.Logger {
 			panic("WithFileOutPut not set, but WithRotateLog set")
 		}
 	}
-
+	
 	{
 		if ok, _ := containsOptions(options, consoleOutPutKey); ok {
 			// default console 输出
 			encoder = zapcore.NewConsoleEncoder(consoleConfig)
-			cores = append(cores, consoleCore(encoder, alv))
+			consoleLv := zap.NewAtomicLevel()
+			consoleLv.SetLevel(getConsoleLogLevel(options))
+			cores = append(cores, consoleCore(encoder, consoleLv))
 		}
 	}
-
+	
 	var (
 		moduleName                  = ""
 		developMode                 = false
 		callerMode                  = false
 		stackLogLevel zapcore.Level = -2
+		callerSkip                  = 0
 	)
+	fileLv := zap.NewAtomicLevel()
+	fileLv.SetLevel(getFileLogLevel(options))
 	for _, option := range options {
 		switch option.Name() {
 		case lumberjackKey:
 			lumberjackConfig := option.Value().(*LumberjackConfig)
 			encoder = zapcore.NewConsoleEncoder(fileConfig)
-			core := lumberjackCore(lumberjackConfig, encoder, alv)
+			core := lumberjackCore(lumberjackConfig, encoder, fileLv)
 			if core != nil {
 				cores = append(cores, core)
 			}
 		case rotatelogKey:
 			logConfig := option.Value().(*RotateLogConfig)
 			encoder = zapcore.NewConsoleEncoder(fileConfig)
-			core := rotateLogCore(logConfig, encoder, alv)
+			core := rotateLogCore(logConfig, encoder, fileLv)
 			if core != nil {
 				cores = append(cores, core)
 			}
@@ -169,11 +173,13 @@ func consoleLogger(options ...Option) *zap.Logger {
 			developMode = option.Value().(bool)
 		case callerKey:
 			callerMode = option.Value().(bool)
+		case callerSkipKey:
+			callerSkip = option.Value().(int)
 		case stackLogLevelKey:
 			stackLogLevel = option.Value().(zapcore.Level)
 		}
 	}
-	return genLogger(cores, moduleName, developMode, callerMode, stackLogLevel)
+	return genLogger(cores, moduleName, developMode, callerMode, callerSkip, stackLogLevel)
 }
 
 func jsonLogger(options ...Option) *zap.Logger {
@@ -188,14 +194,14 @@ func jsonLogger(options ...Option) *zap.Logger {
 	if len(options) == 0 {
 		fmt.Println("no options selected")
 		fmt.Println("create logger with debug level and console output")
-
+		
 		options = append(options, WithConsoleOutPut())
-		options = append(options, WithLogLevel("debug"))
+		options = append(options, WithDefaultLogLevel("debug"))
 	} else {
 		// no log level selected use debug level
-		if ok, _ := containsOptions(options, logLevelKey); !ok {
+		if ok, _ := containsOptions(options, defaultLogLevelKey); !ok {
 			fmt.Println("no log level selected use debug level")
-			options = append(options, WithLogLevel("debug"))
+			options = append(options, WithDefaultLogLevel("debug"))
 		}
 		// without console output selected, delete console output option
 		if ok, _ := containsOptions(options, withoutConsoleOutPutKey); ok {
@@ -210,17 +216,17 @@ func jsonLogger(options ...Option) *zap.Logger {
 			options = append(options, WithConsoleOutPut())
 		}
 	}
-
-	alv := zap.NewAtomicLevel()
-	alv.SetLevel(getLogLevel(options))
-
+	
+	// alv := zap.NewAtomicLevel()
+	// alv.SetLevel(getLogLevel(options))
+	
 	{
 		// 判断options 中实有option的name是consoleEncoderConfigKey
 		if ok, opt := containsOptions(options, consoleEncoderConfigKey); ok {
 			consoleConfig = opt.Value().(zapcore.EncoderConfig)
 		}
 	}
-
+	
 	// 判断是否有 WithFileOutPut
 	if ok, _ := containsOptions(options, fileOutPutKey); ok {
 		// 判断options 中实有option的name是fileEncoderConfigKey
@@ -247,34 +253,39 @@ func jsonLogger(options ...Option) *zap.Logger {
 			panic("WithFileOutPut is not set, but WithRotateLog is set")
 		}
 	}
-
+	
 	{
 		if ok, _ := containsOptions(options, consoleOutPutKey); ok {
 			// default console 输出
 			encoder = zapcore.NewJSONEncoder(consoleConfig)
-			cores = append(cores, consoleCore(encoder, alv))
+			consoleLv := zap.NewAtomicLevel()
+			consoleLv.SetLevel(getConsoleLogLevel(options))
+			cores = append(cores, consoleCore(encoder, consoleLv))
 		}
 	}
-
+	
 	var (
 		moduleName                  = ""
 		developMode                 = false
 		callerMode                  = false
 		stackLogLevel zapcore.Level = -2
+		callerSkip                  = 0
 	)
+	fileLv := zap.NewAtomicLevel()
+	fileLv.SetLevel(getFileLogLevel(options))
 	for _, option := range options {
 		switch option.Name() {
 		case lumberjackKey:
 			lumberjackConfig := option.Value().(*LumberjackConfig)
 			encoder = zapcore.NewJSONEncoder(fileConfig)
-			core := lumberjackCore(lumberjackConfig, encoder, alv)
+			core := lumberjackCore(lumberjackConfig, encoder, fileLv)
 			if core != nil {
 				cores = append(cores, core)
 			}
 		case rotatelogKey:
 			logConfig := option.Value().(*RotateLogConfig)
 			encoder = zapcore.NewJSONEncoder(fileConfig)
-			core := rotateLogCore(logConfig, encoder, alv)
+			core := rotateLogCore(logConfig, encoder, fileLv)
 			if core != nil {
 				cores = append(cores, core)
 			}
@@ -284,11 +295,13 @@ func jsonLogger(options ...Option) *zap.Logger {
 			developMode = option.Value().(bool)
 		case callerKey:
 			callerMode = option.Value().(bool)
+		case callerSkipKey:
+			callerSkip = option.Value().(int)
 		case stackLogLevelKey:
 			stackLogLevel = option.Value().(zapcore.Level)
 		}
 	}
-	return genLogger(cores, moduleName, developMode, callerMode, stackLogLevel)
+	return genLogger(cores, moduleName, developMode, callerMode, callerSkip, stackLogLevel)
 }
 
 func zapLogFmtLogger(options ...Option) *zap.Logger {
@@ -303,14 +316,14 @@ func zapLogFmtLogger(options ...Option) *zap.Logger {
 	if len(options) == 0 {
 		fmt.Println("no options selected")
 		fmt.Println("create logger with debug level and console output")
-
+		
 		options = append(options, WithConsoleOutPut())
-		options = append(options, WithLogLevel("debug"))
+		options = append(options, WithDefaultLogLevel("debug"))
 	} else {
 		// no log level selected use debug level
-		if ok, _ := containsOptions(options, logLevelKey); !ok {
+		if ok, _ := containsOptions(options, defaultLogLevelKey); !ok {
 			fmt.Println("no log level selected use debug level")
-			options = append(options, WithLogLevel("debug"))
+			options = append(options, WithDefaultLogLevel("debug"))
 		}
 		// without console output selected, delete console output option
 		if ok, _ := containsOptions(options, withoutConsoleOutPutKey); ok {
@@ -325,17 +338,17 @@ func zapLogFmtLogger(options ...Option) *zap.Logger {
 			options = append(options, WithConsoleOutPut())
 		}
 	}
-
-	alv := zap.NewAtomicLevel()
-	alv.SetLevel(getLogLevel(options))
-
+	
+	// alv := zap.NewAtomicLevel()
+	// alv.SetLevel(getLogLevel(options))
+	
 	{
 		// 判断options 中实有option的name是consoleEncoderConfigKey
 		if ok, opt := containsOptions(options, consoleEncoderConfigKey); ok {
 			consoleConfig = opt.Value().(zapcore.EncoderConfig)
 		}
 	}
-
+	
 	// 判断是否有 WithFileOutPut
 	if ok, _ := containsOptions(options, fileOutPutKey); ok {
 		// 判断options 中实有option的name是fileEncoderConfigKey
@@ -362,13 +375,15 @@ func zapLogFmtLogger(options ...Option) *zap.Logger {
 			panic("WithFileOutPut is not set, but WithRotateLog is set")
 		}
 	}
-
+	
 	{
-
+		
 		if ok, _ := containsOptions(options, consoleOutPutKey); ok {
 			// default console 输出
 			encoder = zaplogfmt.NewEncoder(consoleConfig)
-			cores = append(cores, consoleCore(encoder, alv))
+			consoleLv := zap.NewAtomicLevel()
+			consoleLv.SetLevel(getConsoleLogLevel(options))
+			cores = append(cores, consoleCore(encoder, consoleLv))
 		}
 	}
 	var (
@@ -376,20 +391,23 @@ func zapLogFmtLogger(options ...Option) *zap.Logger {
 		developMode                 = false
 		callerMode                  = false
 		stackLogLevel zapcore.Level = -2
+		callerSkip                  = 0
 	)
+	fileLv := zap.NewAtomicLevel()
+	fileLv.SetLevel(getFileLogLevel(options))
 	for _, option := range options {
 		switch option.Name() {
 		case lumberjackKey:
 			lumberjackConfig := option.Value().(*LumberjackConfig)
 			encoder = zaplogfmt.NewEncoder(fileConfig)
-			core := lumberjackCore(lumberjackConfig, encoder, alv)
+			core := lumberjackCore(lumberjackConfig, encoder, fileLv)
 			if core != nil {
 				cores = append(cores, core)
 			}
 		case rotatelogKey:
 			logConfig := option.Value().(*RotateLogConfig)
 			encoder = zaplogfmt.NewEncoder(fileConfig)
-			core := rotateLogCore(logConfig, encoder, alv)
+			core := rotateLogCore(logConfig, encoder, fileLv)
 			if core != nil {
 				cores = append(cores, core)
 			}
@@ -399,14 +417,16 @@ func zapLogFmtLogger(options ...Option) *zap.Logger {
 			developMode = option.Value().(bool)
 		case callerKey:
 			callerMode = option.Value().(bool)
+		case callerSkipKey:
+			callerSkip = option.Value().(int)
 		case stackLogLevelKey:
 			stackLogLevel = option.Value().(zapcore.Level)
 		}
 	}
-	return genLogger(cores, moduleName, developMode, callerMode, stackLogLevel)
+	return genLogger(cores, moduleName, developMode, callerMode, callerSkip, stackLogLevel)
 }
 
-func genLogger(cores []zapcore.Core, moduleName string, developMode, callerMode bool, stackLogLevel zapcore.Level) *zap.Logger {
+func genLogger(cores []zapcore.Core, moduleName string, developMode, callerMode bool, callerSkip int, stackLogLevel zapcore.Level) *zap.Logger {
 	core := zapcore.NewTee(cores...)
 	logger := zap.New(core)
 	if len(moduleName) != 0 {
@@ -417,7 +437,7 @@ func genLogger(cores []zapcore.Core, moduleName string, developMode, callerMode 
 	}
 	if callerMode {
 		logger = logger.WithOptions(zap.AddCaller())
-		logger = logger.WithOptions(zap.AddCallerSkip(1))
+		logger = logger.WithOptions(zap.AddCallerSkip(callerSkip))
 	}
 	if stackLogLevel > -2 {
 		logger = logger.WithOptions(zap.AddStacktrace(stackLogLevel))

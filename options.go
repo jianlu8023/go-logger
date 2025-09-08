@@ -9,9 +9,12 @@ import (
 const (
 	stackLogLevelKey        = "stackLogLevel"
 	callerKey               = "caller"
+	callerSkipKey           = "callerSkip"
 	developModeKey          = "developMode"
 	moduleNameKey           = "moduleName"
-	logLevelKey             = "logLevel"
+	defaultLogLevelKey      = "logLevel"
+	consoleLogLevelKey      = "consoleLogLevel"
+	fileLogLevelKey         = "fileLogLevel"
 	lumberjackKey           = "lumberjack"
 	rotatelogKey            = "rotatelog"
 	consoleEncoderConfigKey = "consoleEncoderConfig"
@@ -24,11 +27,31 @@ const (
 	fileOutPutKey           = "fileOutPut"
 )
 
-// WithLogLevel 设置日志级别
+// WithDefaultLogLevel 设置日志级别
 // level: warn  info  debug error fatal panic
-func WithLogLevel(level string) Option {
+func WithDefaultLogLevel(level string) Option {
 	zlv := logLevel(level)
-	return option.NewOption(logLevelKey, zlv)
+	return option.NewOption(defaultLogLevelKey, zlv)
+}
+
+// WithConsoleLogLevel 设置控制台日志级别
+// level: warn  info  debug error fatal panic
+func WithConsoleLogLevel(level string) Option {
+	zlv := logLevel(level)
+	return option.NewOption(consoleLogLevelKey, zlv)
+}
+
+// WithFileLogLevel 设置文件日志级别
+// level: warn  info  debug error fatal panic
+func WithFileLogLevel(level string) Option {
+	zlv := logLevel(level)
+	return option.NewOption(fileLogLevelKey, zlv)
+}
+
+// WithStackLogLevel 设置打印 stack 的日志级别
+func WithStackLogLevel(level string) Option {
+	zlv := logLevel(level)
+	return option.NewOption(stackLogLevelKey, zlv)
 }
 
 // WithModuleName 设置moduleName
@@ -46,10 +69,9 @@ func WithCaller() Option {
 	return option.NewOption(callerKey, true)
 }
 
-// WithStackLogLevel 设置打印 stack 的日志级别
-func WithStackLogLevel(level string) Option {
-	zlv := logLevel(level)
-	return option.NewOption(stackLogLevelKey, zlv)
+// WithCallerSkip 设置 caller skip
+func WithCallerSkip(skip int) Option {
+	return option.NewOption(callerSkipKey, skip)
 }
 
 // WithFileOutPut 输出日志到文件

@@ -17,7 +17,7 @@ import (
 
 var (
 	newLogger = glog.NewLogger(
-		glog.WithLogLevel("info"),
+		glog.WithDefaultLogLevel("info"),
 		glog.WithCaller(),
 		glog.WithStackLogLevel("error"),
 		glog.WithModuleName("[db]"),

@@ -7,7 +7,7 @@ import (
 	"syscall"
 	"testing"
 	"time"
-
+	
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -26,7 +26,7 @@ func TestNewLoggerWithNoFile(t *testing.T) {
 
 func TestNewLoggerWithLumberJack(t *testing.T) {
 	logger := NewLogger(
-		WithLogLevel("info"),
+		WithDefaultLogLevel("info"),
 		WithModuleName("[app]"),
 		WithStackLogLevel("error"),
 		WithCaller(),
@@ -43,13 +43,13 @@ func TestNewLoggerWithLumberJack(t *testing.T) {
 		WithConsoleFormat(),
 	)
 	ticker(logger)
-
+	
 }
 
 func TestNewLogger(t *testing.T) {
 	logger := NewLogger(
-
-		WithLogLevel("debug"),
+		
+		WithDefaultLogLevel("debug"),
 		WithDevelopMode(),
 		WithModuleName("[sdk]"),
 		WithCaller(),
@@ -99,14 +99,14 @@ func TestNewLogger(t *testing.T) {
 		WithConsoleOutPut(),
 	)
 	ticker(logger)
-
+	
 }
 
 func TestNewSugaredLogger(t *testing.T) {
-
+	
 	logger := NewSugaredLogger(
 		WithFileOutPut(),
-		WithLogLevel("DEBUG"),
+		WithDefaultLogLevel("DEBUG"),
 		WithDevelopMode(),
 		WithModuleName("[app]"),
 		WithStackLogLevel("error"),
@@ -122,12 +122,12 @@ func TestNewSugaredLogger(t *testing.T) {
 	)
 	logger.Errorf("error info %s", errors.New("this is a test error"))
 	tickerSugared(logger)
-
+	
 }
 
 func tickerSugared(logger *zap.SugaredLogger) {
 	ticker := time.NewTicker(time.Second * 1)
-
+	
 	go func() {
 		for {
 			select {
@@ -147,10 +147,10 @@ func tickerSugared(logger *zap.SugaredLogger) {
 			}
 		}
 	}()
-
+	
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-
+	
 	select {
 	case <-quit:
 		ticker.Stop()
