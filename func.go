@@ -1,10 +1,9 @@
 package go_logger
 
 import (
-	"fmt"
 	"os"
 	"slices"
-	
+
 	zaplogfmt "github.com/sykesm/zap-logfmt"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -59,30 +58,30 @@ func rotateLogCore(conf *RotateLogConfig, encoder zapcore.Encoder, lv zap.Atomic
 func consoleLogger(options ...Option) *zap.Logger {
 	var (
 		cores []zapcore.Core
-		
+
 		// consoleConfig 默认是 consoleEncoderConfig
 		consoleConfig = consoleEncoderConfig
-		
+
 		// fileConfig 默认是 fileEncoderConfig
 		fileConfig = fileEncoderConfig
-		
+
 		encoder zapcore.Encoder
 	)
-	
+
 	if len(options) == 0 {
-		fmt.Println("create logger with debug level and console output")
-		
+		// fmt.Println("create logger with debug level and console output")
+
 		options = append(options, WithConsoleOutPut())
 		options = append(options, WithDefaultLogLevel(debug))
 	} else {
 		// no log level selected use debug level
 		if ok, _ := containsOptions(options, defaultLogLevelKey); !ok {
-			fmt.Println("no log level selected use debug level")
+			// fmt.Println("no log level selected use debug level")
 			options = append(options, WithDefaultLogLevel(debug))
 		}
 		// without console output selected, delete console output option
 		if ok, _ := containsOptions(options, withoutConsoleOutPutKey); ok {
-			fmt.Println("without console output selected")
+			// fmt.Println("without console output selected")
 			options = slices.DeleteFunc(options, func(option Option) bool {
 				return option.Name() == consoleOutPutKey
 			})
@@ -93,24 +92,24 @@ func consoleLogger(options ...Option) *zap.Logger {
 			options = append(options, WithConsoleOutPut())
 		}
 	}
-	
+
 	// alv := zap.NewAtomicLevel()
 	// alv.SetLevel(getLogLevel(options))
-	
+
 	{
 		// 判断options 中实有option的name是consoleEncoderConfigKey
 		if ok, opt := containsOptions(options, consoleEncoderConfigKey); ok {
 			consoleConfig = opt.Value().(zapcore.EncoderConfig)
 		}
 	}
-	
+
 	// 判断是否有 WithFileOutPut
 	if ok, _ := containsOptions(options, fileOutPutKey); ok {
 		// 判断options 中实有option的name是fileEncoderConfigKey
 		if ok, opt := containsOptions(options, fileEncoderConfigKey); ok {
 			fileConfig = opt.Value().(zapcore.EncoderConfig)
 		}
-		
+
 		var lumberjack, rotateLog bool
 		if ok, _ := containsOptions(options, lumberjackKey); !ok {
 			lumberjack = true
@@ -131,7 +130,7 @@ func consoleLogger(options ...Option) *zap.Logger {
 			panic("WithFileOutPut not set, but WithRotateLog set")
 		}
 	}
-	
+
 	{
 		if ok, _ := containsOptions(options, consoleOutPutKey); ok {
 			// default console 输出
@@ -141,7 +140,7 @@ func consoleLogger(options ...Option) *zap.Logger {
 			cores = append(cores, consoleCore(encoder, consoleLv))
 		}
 	}
-	
+
 	var (
 		moduleName                  = ""
 		developMode                 = false
@@ -192,20 +191,20 @@ func jsonLogger(options ...Option) *zap.Logger {
 		encoder    zapcore.Encoder
 	)
 	if len(options) == 0 {
-		fmt.Println("no options selected")
-		fmt.Println("create logger with debug level and console output")
-		
+		// fmt.Println("no options selected")
+		// fmt.Println("create logger with debug level and console output")
+
 		options = append(options, WithConsoleOutPut())
-		options = append(options, WithDefaultLogLevel("debug"))
+		options = append(options, WithDefaultLogLevel(debug))
 	} else {
 		// no log level selected use debug level
 		if ok, _ := containsOptions(options, defaultLogLevelKey); !ok {
-			fmt.Println("no log level selected use debug level")
-			options = append(options, WithDefaultLogLevel("debug"))
+			// fmt.Println("no log level selected use debug level")
+			options = append(options, WithDefaultLogLevel(debug))
 		}
 		// without console output selected, delete console output option
 		if ok, _ := containsOptions(options, withoutConsoleOutPutKey); ok {
-			fmt.Println("without console output selected")
+			// fmt.Println("without console output selected")
 			options = slices.DeleteFunc(options, func(option Option) bool {
 				return option.Name() == consoleOutPutKey
 			})
@@ -216,17 +215,17 @@ func jsonLogger(options ...Option) *zap.Logger {
 			options = append(options, WithConsoleOutPut())
 		}
 	}
-	
+
 	// alv := zap.NewAtomicLevel()
 	// alv.SetLevel(getLogLevel(options))
-	
+
 	{
 		// 判断options 中实有option的name是consoleEncoderConfigKey
 		if ok, opt := containsOptions(options, consoleEncoderConfigKey); ok {
 			consoleConfig = opt.Value().(zapcore.EncoderConfig)
 		}
 	}
-	
+
 	// 判断是否有 WithFileOutPut
 	if ok, _ := containsOptions(options, fileOutPutKey); ok {
 		// 判断options 中实有option的name是fileEncoderConfigKey
@@ -253,7 +252,7 @@ func jsonLogger(options ...Option) *zap.Logger {
 			panic("WithFileOutPut is not set, but WithRotateLog is set")
 		}
 	}
-	
+
 	{
 		if ok, _ := containsOptions(options, consoleOutPutKey); ok {
 			// default console 输出
@@ -263,7 +262,7 @@ func jsonLogger(options ...Option) *zap.Logger {
 			cores = append(cores, consoleCore(encoder, consoleLv))
 		}
 	}
-	
+
 	var (
 		moduleName                  = ""
 		developMode                 = false
@@ -314,20 +313,20 @@ func zapLogFmtLogger(options ...Option) *zap.Logger {
 		encoder    zapcore.Encoder
 	)
 	if len(options) == 0 {
-		fmt.Println("no options selected")
-		fmt.Println("create logger with debug level and console output")
-		
+		// fmt.Println("no options selected")
+		// fmt.Println("create logger with debug level and console output")
+
 		options = append(options, WithConsoleOutPut())
-		options = append(options, WithDefaultLogLevel("debug"))
+		options = append(options, WithDefaultLogLevel(debug))
 	} else {
 		// no log level selected use debug level
 		if ok, _ := containsOptions(options, defaultLogLevelKey); !ok {
-			fmt.Println("no log level selected use debug level")
-			options = append(options, WithDefaultLogLevel("debug"))
+			// fmt.Println("no log level selected use debug level")
+			options = append(options, WithDefaultLogLevel(debug))
 		}
 		// without console output selected, delete console output option
 		if ok, _ := containsOptions(options, withoutConsoleOutPutKey); ok {
-			fmt.Println("without console output selected")
+			// fmt.Println("without console output selected")
 			options = slices.DeleteFunc(options, func(option Option) bool {
 				return option.Name() == consoleOutPutKey
 			})
@@ -338,17 +337,17 @@ func zapLogFmtLogger(options ...Option) *zap.Logger {
 			options = append(options, WithConsoleOutPut())
 		}
 	}
-	
+
 	// alv := zap.NewAtomicLevel()
 	// alv.SetLevel(getLogLevel(options))
-	
+
 	{
 		// 判断options 中实有option的name是consoleEncoderConfigKey
 		if ok, opt := containsOptions(options, consoleEncoderConfigKey); ok {
 			consoleConfig = opt.Value().(zapcore.EncoderConfig)
 		}
 	}
-	
+
 	// 判断是否有 WithFileOutPut
 	if ok, _ := containsOptions(options, fileOutPutKey); ok {
 		// 判断options 中实有option的name是fileEncoderConfigKey
@@ -375,9 +374,9 @@ func zapLogFmtLogger(options ...Option) *zap.Logger {
 			panic("WithFileOutPut is not set, but WithRotateLog is set")
 		}
 	}
-	
+
 	{
-		
+
 		if ok, _ := containsOptions(options, consoleOutPutKey); ok {
 			// default console 输出
 			encoder = zaplogfmt.NewEncoder(consoleConfig)

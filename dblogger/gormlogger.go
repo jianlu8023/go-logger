@@ -14,10 +14,9 @@ import (
 	"unicode"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jianlu8023/go-logger/v2/internal/colour"
 	"go.uber.org/zap"
 	dbLogger "gorm.io/gorm/logger"
-
-	"github.com/jianlu8023/go-tools/pkg/format/colour"
 )
 
 func (l Logger) LogMode(level dbLogger.LogLevel) dbLogger.Interface {

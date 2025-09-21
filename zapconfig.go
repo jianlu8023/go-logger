@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jianlu8023/go-logger/v2/internal/colour"
 	"go.uber.org/zap/zapcore"
-
-	"github.com/jianlu8023/go-tools/pkg/format/colour"
 )
 
 const (
