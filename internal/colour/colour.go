@@ -1,14 +1,15 @@
 package colour
 
 import (
-	"github.com/labstack/gommon/color"
+	"github.com/jianlu8023/go-logger/v2/internal/colour/colours"
+	// "github.com/labstack/gommon/color"
 	// "github.com/fatih/color"
 )
 
-var c *color.Color
+var c *colours.Color
 
 func init() {
-	c = color.New()
+	c = colours.New()
 	c.Enable()
 }
 func Magenta(str string) string   { return c.Magenta(str) }
