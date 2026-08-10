@@ -1,16 +1,25 @@
 package colour
 
 import (
+	"os"
+
 	"github.com/jianlu8023/go-logger/v2/internal/colour/colours"
-	// "github.com/labstack/gommon/color"
-	// "github.com/fatih/color"
+	"github.com/mattn/go-isatty"
 )
 
 var c *colours.Color
 
 func init() {
 	c = colours.New()
-	c.Enable()
+	// 直接检测 os.Stdout 是否为终端，避免 SetOutput 中对 colorable.Wrapper 类型断言失败的问题
+	// SetOutput 使用 colorable.NewColorableStdout()，其返回类型不是 *os.File，
+	// 导致 SetOutput 内的 isatty 判断始终以非终端处理（disabled=true）
+	// 因此这里需要独立基于 os.Stdout 做判断
+	if isatty.IsTerminal(os.Stdout.Fd()) {
+		c.Enable()
+	} else {
+		c.Disable()
+	}
 }
 func Magenta(str string) string   { return c.Magenta(str) }
 func Blue(str string) string      { return c.Blue(str) }

@@ -2,12 +2,9 @@ package go_logger
 
 import (
 	"errors"
-	"os"
-	"os/signal"
-	"syscall"
 	"testing"
 	"time"
-	
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -43,12 +40,12 @@ func TestNewLoggerWithLumberJack(t *testing.T) {
 		WithConsoleFormat(),
 	)
 	ticker(logger)
-	
+
 }
 
 func TestNewLogger(t *testing.T) {
 	logger := NewLogger(
-		
+
 		WithDefaultLogLevel("debug"),
 		WithDevelopMode(),
 		WithModuleName("[sdk]"),
@@ -99,11 +96,11 @@ func TestNewLogger(t *testing.T) {
 		WithConsoleOutPut(),
 	)
 	ticker(logger)
-	
+
 }
 
 func TestNewSugaredLogger(t *testing.T) {
-	
+
 	logger := NewSugaredLogger(
 		WithFileOutPut(),
 		WithDefaultLogLevel("DEBUG"),
@@ -122,12 +119,12 @@ func TestNewSugaredLogger(t *testing.T) {
 	)
 	logger.Errorf("error info %s", errors.New("this is a test error"))
 	tickerSugared(logger)
-	
+
 }
 
 func tickerSugared(logger *zap.SugaredLogger) {
 	ticker := time.NewTicker(time.Second * 1)
-	
+
 	go func() {
 		for {
 			select {
@@ -147,15 +144,11 @@ func tickerSugared(logger *zap.SugaredLogger) {
 			}
 		}
 	}()
-	
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	
-	select {
-	case <-quit:
-		ticker.Stop()
-		logger.Info("stop")
-	}
+
+	// 使用 time.After 超时控制，避免阻塞式信号监听导致测试挂起
+	<-time.After(3 * time.Second)
+	ticker.Stop()
+	logger.Info("stop")
 }
 
 func ticker(log *zap.Logger) {
@@ -172,11 +165,8 @@ func ticker(log *zap.Logger) {
 			}
 		}
 	}()
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	select {
-	case <-quit:
-		ticker.Stop()
-		log.Debug("stop logger ticker...")
-	}
+	// 使用 time.After 超时控制，避免阻塞式信号监听导致测试挂起
+	<-time.After(3 * time.Second)
+	ticker.Stop()
+	log.Debug("stop logger ticker...")
 }

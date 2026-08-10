@@ -108,42 +108,55 @@ func WithFileConfig(config zapcore.EncoderConfig) Option {
 	return option.NewOption(fileEncoderConfigKey, config)
 }
 
-func containsOptions(options []Option, key string) (bool, Option) {
-	var o Option
-	exists := false
+// buildOptionMap 将 options 转为 map，相同 Name 的 option 后者覆盖前者。
+//
+// 语义说明：
+//   - 此 map 仅用于"单值配置"的快速查找（如 defaultLogLevelKey、moduleNameKey、
+//     consoleOutPutKey、fileOutPutKey、formatKey 等），重复时只生效最后一个。
+//   - 对于"可多实例配置"（lumberjackKey、rotatelogKey），不应从此 map 读取，
+//     而应直接遍历原始 options slice，以支持多文件输出场景。
+//     参见 func.go buildLogger 中对 lumberjack/rotatelog 的处理。
+func buildOptionMap(options []Option) map[string]Option {
+	optMap := make(map[string]Option, len(options))
 	for _, opt := range options {
-		if opt.Name() == key {
-			exists = true
-			o = opt
-			break
-		}
+		optMap[opt.Name()] = opt
 	}
-	return exists, o
+	return optMap
 }
 
 func checkFormat(options []Option) (bool, Option) {
-	var jsonExists, consoleExists, zaplogfmtExists bool
-
+	var formats []Option
 	for _, opt := range options {
-		if opt.Name() == jsonFormatKey {
-			jsonExists = true
-		} else if opt.Name() == consoleFormatKey {
-			consoleExists = true
-		} else if opt.Name() == zaplogfmtKey {
-			zaplogfmtExists = true
+		switch opt.Name() {
+		case jsonFormatKey, consoleFormatKey, zaplogfmtKey:
+			formats = append(formats, opt)
 		}
 	}
 
-	if jsonExists && consoleExists && zaplogfmtExists {
+	switch len(formats) {
+	case 0:
+		return false, WithConsoleFormat()
+	case 1:
+		return false, formats[0]
+	default:
 		return true, WithConsoleFormat()
-	} else if jsonExists && !consoleExists && !zaplogfmtExists {
-		return false, WithJSONFormat()
-	} else if !jsonExists && consoleExists && !zaplogfmtExists {
-		return false, WithConsoleFormat()
-	} else if !jsonExists && !consoleExists && zaplogfmtExists {
-		return false, WithZaplogfmtFormat()
-	} else {
-		return false, WithConsoleFormat()
 	}
+}
 
+func hasOutput(options []Option) bool {
+	optMap := buildOptionMap(options)
+	if _, ok1 := optMap[consoleOutPutKey]; !ok1 {
+		if _, ok2 := optMap[fileOutPutKey]; !ok2 {
+			return false
+		}
+	}
+	return true
+}
+
+func hasLogLevel(options []Option) bool {
+	optMap := buildOptionMap(options)
+	if _, ok1 := optMap[defaultLogLevelKey]; !ok1 {
+		return false
+	}
+	return true
 }

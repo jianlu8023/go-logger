@@ -1,10 +1,10 @@
 package go_logger
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"time"
-
-	"github.com/bytedance/sonic"
 
 	"github.com/jianlu8023/go-logger/v2/internal/define"
 )
@@ -43,31 +43,29 @@ type LumberjackConfig struct {
 }
 
 func (l *LumberjackConfig) String() string {
-	marshalString, _ := sonic.MarshalString(l)
-	return marshalString
+	marshalString, _ := json.Marshal(l)
+	return string(marshalString)
 }
 
 func LumberjackDefaultConfig() *LumberjackConfig {
 	return &LumberjackConfig{
-		FileName:   define.FileName,
-		MaxSize:    define.MaxSize,
-		MaxAge:     define.MaxAge,
-		MaxBackups: define.MaxBackups,
-		Compress:   define.Compress,
-		Localtime:  define.Localtime,
+		FileName:   define.GetLumberjackFileName(),
+		MaxSize:    define.GetLumberjackMaxSize(),
+		MaxAge:     define.GetLumberjackMaxAge(),
+		MaxBackups: define.GetLumberjackMaxBackups(),
+		Compress:   define.GetLumberjackCompress(),
+		Localtime:  define.GetLumberjackLocaltime(),
 	}
 }
 
 func NewLumberjackUrl(config *LumberjackConfig) string {
-	dst := make([]byte, len(define.LumberjackTemplate))
-	copy(dst, define.LumberjackTemplate)
 	var (
-		fileName   = define.FileName
-		maxSize    = define.MaxSize
-		maxAge     = define.MaxAge
-		maxBackups = define.MaxBackups
-		compress   = define.Compress
-		localtime  = define.Localtime
+		fileName   = define.GetLumberjackFileName()
+		maxSize    = define.GetLumberjackMaxSize()
+		maxAge     = define.GetLumberjackMaxAge()
+		maxBackups = define.GetLumberjackMaxBackups()
+		compress   = define.GetLumberjackCompress()
+		localtime  = define.GetLumberjackLocaltime()
 	)
 	if nil != config {
 		if config.FileName != "" {
@@ -86,7 +84,7 @@ func NewLumberjackUrl(config *LumberjackConfig) string {
 		localtime = config.Localtime
 	}
 
-	return fmt.Sprintf(string(dst), fileName, maxSize, maxAge, maxBackups, compress, localtime)
+	return fmt.Sprintf(define.LumberjackTemplate, fileName, maxSize, maxAge, maxBackups, compress, localtime)
 }
 
 type RotateLogConfig struct {
@@ -97,27 +95,25 @@ type RotateLogConfig struct {
 }
 
 func (r *RotateLogConfig) String() string {
-	marshalString, _ := sonic.MarshalString(r)
-	return marshalString
+	marshalString, _ := json.Marshal(r)
+	return string(marshalString)
 }
 
 func RotateLogDefaultConfig() *RotateLogConfig {
 	return &RotateLogConfig{
-		FileName:     define.BaseName,
-		MaxAge:       define.RmaxAge.String(),
+		FileName:     define.GetRotatelogsBaseName(),
+		MaxAge:       define.GetRotatelogsRmaxAge().String(),
 		LocalTime:    false,
-		RotationTime: define.RotationTime.String(),
+		RotationTime: define.GetRotatelogsRotationTime().String(),
 	}
 }
 
 func NewRotateLogURL(config *RotateLogConfig) string {
-	dst := make([]byte, len(define.RotateLogsTemplate))
-	copy(dst, define.RotateLogsTemplate)
 	var (
-		baseName     = define.BaseName
-		maxAge       = define.RmaxAge
-		localtime    = define.Rlocaltime
-		rotationTime = define.RotationTime
+		baseName     = define.GetRotatelogsBaseName()
+		maxAge       = define.GetRotatelogsRmaxAge()
+		localtime    = define.GetRotatelogsRlocaltime()
+		rotationTime = define.GetRotatelogsRotationTime()
 	)
 
 	if nil != config {
@@ -126,10 +122,12 @@ func NewRotateLogURL(config *RotateLogConfig) string {
 		}
 		if config.MaxAge != "" {
 			duration, err := time.ParseDuration(config.MaxAge)
-			if err == nil {
+			if err != nil {
+				// 解析失败不 panic，输出 stderr 告警，回退到默认值
+				fmt.Fprintf(os.Stderr, "[go-logger] WARNING: invalid MaxAge %q: %v, using default\n", config.MaxAge, err)
+			} else {
 				maxAge = duration
 			}
-			// maxAge = config.MaxAge
 		}
 		if config.LocalTime == true {
 			localtime = time.Local
@@ -138,11 +136,15 @@ func NewRotateLogURL(config *RotateLogConfig) string {
 		}
 		if config.RotationTime != "" {
 			duration, err := time.ParseDuration(config.RotationTime)
-			if err == nil {
+			if err != nil {
+				// 解析失败不 panic，输出 stderr 告警，回退到默认值
+				fmt.Fprintf(os.Stderr, "[go-logger] WARNING: invalid RotationTime %q: %v, using default\n", config.RotationTime, err)
+			} else {
 				rotationTime = duration
 			}
-			// rotationTime = config.RotationTime
 		}
 	}
-	return fmt.Sprintf(string(dst), baseName, maxAge, localtime, rotationTime)
+	// 统一使用 true/false 格式化 localtime 参数，与 lumberjack 保持一致
+	isLocal := localtime == time.Local
+	return fmt.Sprintf(define.RotateLogsTemplate, baseName, maxAge, isLocal, rotationTime)
 }

@@ -2,30 +2,32 @@ package go_logger
 
 import (
 	"go.uber.org/zap/zapcore"
+	"strings"
 )
 
 const (
-	warn   = "warn"
-	info   = "info"
-	debug  = "debug"
-	_error = "error"
-	fatal  = "fatal"
-	_panic = "panic"
+	warnLevel  = "warn"
+	infoLevel  = "info"
+	debugLevel = "debug"
+	errorLevel = "error"
+	fatalLevel = "fatal"
+	panicLevel = "panic"
 )
 
 func logLevel(level string) zapcore.Level {
+	level = strings.ToLower(level)
 	switch level {
-	case info:
+	case infoLevel:
 		return zapcore.InfoLevel
-	case debug:
+	case debugLevel:
 		return zapcore.DebugLevel
-	case warn:
+	case warnLevel:
 		return zapcore.WarnLevel
-	case _error:
+	case errorLevel:
 		return zapcore.ErrorLevel
-	case _panic:
+	case panicLevel:
 		return zapcore.PanicLevel
-	case fatal:
+	case fatalLevel:
 		return zapcore.FatalLevel
 	default:
 		return zapcore.InfoLevel
@@ -33,31 +35,25 @@ func logLevel(level string) zapcore.Level {
 }
 
 // getFileLogLevel 获取输出到文件的日志级别
-func getFileLogLevel(options []Option) zapcore.Level {
-	for _, opt := range options {
-		if opt.Name() == fileLogLevelKey {
-			return opt.Value().(zapcore.Level)
-		}
+func getFileLogLevel(optMap map[string]Option) zapcore.Level {
+	if opt, ok := optMap[fileLogLevelKey]; ok {
+		return opt.Value().(zapcore.Level)
 	}
-	return getLogLevel(options)
+	return getLogLevel(optMap)
 }
 
 // getConsoleLogLevel 获取输出到控制台的日志级别
-func getConsoleLogLevel(options []Option) zapcore.Level {
-	for _, opt := range options {
-		if opt.Name() == consoleLogLevelKey {
-			return opt.Value().(zapcore.Level)
-		}
+func getConsoleLogLevel(optMap map[string]Option) zapcore.Level {
+	if opt, ok := optMap[consoleLogLevelKey]; ok {
+		return opt.Value().(zapcore.Level)
 	}
-	return getLogLevel(options)
+	return getLogLevel(optMap)
 }
 
 // getLogLevel 从options中获取日志级别
-func getLogLevel(options []Option) zapcore.Level {
-	for _, opt := range options {
-		if opt.Name() == defaultLogLevelKey {
-			return opt.Value().(zapcore.Level)
-		}
+func getLogLevel(optMap map[string]Option) zapcore.Level {
+	if opt, ok := optMap[defaultLogLevelKey]; ok {
+		return opt.Value().(zapcore.Level)
 	}
 	return zapcore.DebugLevel
 }

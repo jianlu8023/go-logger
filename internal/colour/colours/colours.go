@@ -306,102 +306,102 @@ func Printf(format string, args ...interface{}) {
 	global.Printf(format, args...)
 }
 
-func Black(msg interface{}, styles ...string) string {
-	return global.Black(msg, styles...)
-}
-
-func Red(msg interface{}, styles ...string) string {
-	return global.Red(msg, styles...)
-}
-
-func Green(msg interface{}, styles ...string) string {
-	return global.Green(msg, styles...)
-}
-
-func Yellow(msg interface{}, styles ...string) string {
-	return global.Yellow(msg, styles...)
-}
-
-func Blue(msg interface{}, styles ...string) string {
-	return global.Blue(msg, styles...)
-}
-
-func Magenta(msg interface{}, styles ...string) string {
-	return global.Magenta(msg, styles...)
-}
-
-func Cyan(msg interface{}, styles ...string) string {
-	return global.Cyan(msg, styles...)
-}
-
-func White(msg interface{}, styles ...string) string {
-	return global.White(msg, styles...)
-}
-
-func Grey(msg interface{}, styles ...string) string {
-	return global.Grey(msg, styles...)
-}
-
-func BlackBg(msg interface{}, styles ...string) string {
-	return global.BlackBg(msg, styles...)
-}
-
-func RedBg(msg interface{}, styles ...string) string {
-	return global.RedBg(msg, styles...)
-}
-
-func GreenBg(msg interface{}, styles ...string) string {
-	return global.GreenBg(msg, styles...)
-}
-
-func YellowBg(msg interface{}, styles ...string) string {
-	return global.YellowBg(msg, styles...)
-}
-
-func BlueBg(msg interface{}, styles ...string) string {
-	return global.BlueBg(msg, styles...)
-}
-
-func MagentaBg(msg interface{}, styles ...string) string {
-	return global.MagentaBg(msg, styles...)
-}
-
-func CyanBg(msg interface{}, styles ...string) string {
-	return global.CyanBg(msg, styles...)
-}
-
-func WhiteBg(msg interface{}, styles ...string) string {
-	return global.WhiteBg(msg, styles...)
-}
-
-func Reset(msg interface{}, styles ...string) string {
-	return global.Reset(msg, styles...)
-}
-
-func Bold(msg interface{}, styles ...string) string {
-	return global.Bold(msg, styles...)
-}
-
-func Dim(msg interface{}, styles ...string) string {
-	return global.Dim(msg, styles...)
-}
-
-func Italic(msg interface{}, styles ...string) string {
-	return global.Italic(msg, styles...)
-}
-
-func Underline(msg interface{}, styles ...string) string {
-	return global.Underline(msg, styles...)
-}
-
-func Inverse(msg interface{}, styles ...string) string {
-	return global.Inverse(msg, styles...)
-}
-
-func Hidden(msg interface{}, styles ...string) string {
-	return global.Hidden(msg, styles...)
-}
-
-func Strikeout(msg interface{}, styles ...string) string {
-	return global.Strikeout(msg, styles...)
-}
+// func Black(msg interface{}, styles ...string) string {
+// 	return global.Black(msg, styles...)
+// }
+//
+// func Red(msg interface{}, styles ...string) string {
+// 	return global.Red(msg, styles...)
+// }
+//
+// func Green(msg interface{}, styles ...string) string {
+// 	return global.Green(msg, styles...)
+// }
+//
+// func Yellow(msg interface{}, styles ...string) string {
+// 	return global.Yellow(msg, styles...)
+// }
+//
+// func Blue(msg interface{}, styles ...string) string {
+// 	return global.Blue(msg, styles...)
+// }
+//
+// func Magenta(msg interface{}, styles ...string) string {
+// 	return global.Magenta(msg, styles...)
+// }
+//
+// func Cyan(msg interface{}, styles ...string) string {
+// 	return global.Cyan(msg, styles...)
+// }
+//
+// func White(msg interface{}, styles ...string) string {
+// 	return global.White(msg, styles...)
+// }
+//
+// func Grey(msg interface{}, styles ...string) string {
+// 	return global.Grey(msg, styles...)
+// }
+//
+// func BlackBg(msg interface{}, styles ...string) string {
+// 	return global.BlackBg(msg, styles...)
+// }
+//
+// func RedBg(msg interface{}, styles ...string) string {
+// 	return global.RedBg(msg, styles...)
+// }
+//
+// func GreenBg(msg interface{}, styles ...string) string {
+// 	return global.GreenBg(msg, styles...)
+// }
+//
+// func YellowBg(msg interface{}, styles ...string) string {
+// 	return global.YellowBg(msg, styles...)
+// }
+//
+// func BlueBg(msg interface{}, styles ...string) string {
+// 	return global.BlueBg(msg, styles...)
+// }
+//
+// func MagentaBg(msg interface{}, styles ...string) string {
+// 	return global.MagentaBg(msg, styles...)
+// }
+//
+// func CyanBg(msg interface{}, styles ...string) string {
+// 	return global.CyanBg(msg, styles...)
+// }
+//
+// func WhiteBg(msg interface{}, styles ...string) string {
+// 	return global.WhiteBg(msg, styles...)
+// }
+//
+// func Reset(msg interface{}, styles ...string) string {
+// 	return global.Reset(msg, styles...)
+// }
+//
+// func Bold(msg interface{}, styles ...string) string {
+// 	return global.Bold(msg, styles...)
+// }
+//
+// func Dim(msg interface{}, styles ...string) string {
+// 	return global.Dim(msg, styles...)
+// }
+//
+// func Italic(msg interface{}, styles ...string) string {
+// 	return global.Italic(msg, styles...)
+// }
+//
+// func Underline(msg interface{}, styles ...string) string {
+// 	return global.Underline(msg, styles...)
+// }
+//
+// func Inverse(msg interface{}, styles ...string) string {
+// 	return global.Inverse(msg, styles...)
+// }
+//
+// func Hidden(msg interface{}, styles ...string) string {
+// 	return global.Hidden(msg, styles...)
+// }
+//
+// func Strikeout(msg interface{}, styles ...string) string {
+// 	return global.Strikeout(msg, styles...)
+// }
