@@ -1,4 +1,4 @@
-package dblogger
+package db_logger
 
 import (
 	"fmt"
@@ -64,7 +64,7 @@ func TestNewDBLogger(t *testing.T) {
 		defer wg.Done()
 		db, err := xorm.NewEngine(
 			"mysql",
-			"root:123456@tcp(127.0.0.1:3306)/basic",
+			"root:123456@tcp(127.0.0.1:3306)/basic?charset=utf8mb4&parseTime=True&loc=Local",
 		)
 		db.SetLogger(log)
 		if err != nil {
@@ -108,7 +108,7 @@ func TestNewDBLogger(t *testing.T) {
 			port     = "3306"
 			database = "basic"
 		)
-		mysqlDsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%s?charset=utf8&parseTime=True&loc=Local", username, password, host, port, database)
+		mysqlDsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%s?charset=utf8mb4&parseTime=True&loc=Local", username, password, host, port, database)
 
 		mysqlDB, err := gorm.Open(mysql.Open(mysqlDsn), &gorm.Config{
 			Logger: log,
@@ -212,7 +212,7 @@ func TestGormV1DbLogger(t *testing.T) {
 		port     = "3306"
 		database = "basic"
 	)
-	mysqlDsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%s?charset=utf8&parseTime=True&loc=Local", username, password, host, port, database)
+	mysqlDsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%s?charset=utf8mb4&parseTime=True&loc=Local", username, password, host, port, database)
 
 	db, err := gormv1.Open("mysql", mysqlDsn)
 	if err != nil {

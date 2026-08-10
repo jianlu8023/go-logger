@@ -1,4 +1,4 @@
-package dblogger
+package db_logger
 
 import (
 	"context"
@@ -6,7 +6,9 @@ import (
 	xormlogger "xorm.io/xorm/log"
 )
 
-func (l Logger) BeforeSQL(ctx xormlogger.LogContext) {}
+func (l Logger) BeforeSQL(ctx xormlogger.LogContext) {
+	l.Debugf("开始调用 xorm...")
+}
 
 func (l Logger) AfterSQL(ctx xormlogger.LogContext) {
 	// var sessionPart string

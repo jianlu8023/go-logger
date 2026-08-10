@@ -1,4 +1,4 @@
-package dblogger
+package db_logger
 
 import (
 	"context"
