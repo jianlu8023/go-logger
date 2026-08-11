@@ -147,26 +147,6 @@ func checkFormat(options []Option) (bool, Option) {
 	}
 }
 
-func hasOutput(options []Option) bool {
-	optMap := buildOptionMap(options)
-
-	// console 输出：默认有效，仅当 withoutConsoleOutPutKey 存在时无效
-	consoleEffective := true
-	if _, without := optMap[withoutConsoleOutPutKey]; without {
-		consoleEffective = false
-	}
-
-	// file 输出：仅当 fileOutPutKey 存在 且 withoutFileOutPutKey 不存在时有效
-	fileEffective := false
-	if _, without := optMap[withoutFileOutPutKey]; !without {
-		if _, with := optMap[fileOutPutKey]; with {
-			fileEffective = true
-		}
-	}
-
-	return consoleEffective || fileEffective
-}
-
 func hasLogLevel(options []Option) bool {
 	optMap := buildOptionMap(options)
 	if _, ok1 := optMap[defaultLogLevelKey]; !ok1 {

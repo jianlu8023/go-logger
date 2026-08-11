@@ -124,7 +124,7 @@ func NewRotateLogURL(config *RotateLogConfig) string {
 			duration, err := time.ParseDuration(config.MaxAge)
 			if err != nil {
 				// 解析失败不 panic，输出 stderr 告警，回退到默认值
-				fmt.Fprintf(os.Stderr, "[go-logger] WARNING: invalid MaxAge %q: %v, using default\n", config.MaxAge, err)
+				_, _ = fmt.Fprintf(os.Stderr, "[go-logger] WARNING: invalid MaxAge %q: %v, using default\n", config.MaxAge, err)
 			} else {
 				maxAge = duration
 			}
@@ -138,7 +138,7 @@ func NewRotateLogURL(config *RotateLogConfig) string {
 			duration, err := time.ParseDuration(config.RotationTime)
 			if err != nil {
 				// 解析失败不 panic，输出 stderr 告警，回退到默认值
-				fmt.Fprintf(os.Stderr, "[go-logger] WARNING: invalid RotationTime %q: %v, using default\n", config.RotationTime, err)
+				_, _ = fmt.Fprintf(os.Stderr, "[go-logger] WARNING: invalid RotationTime %q: %v, using default\n", config.RotationTime, err)
 			} else {
 				rotationTime = duration
 			}

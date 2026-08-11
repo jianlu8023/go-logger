@@ -19,7 +19,7 @@ import (
 func NewLogger(options ...Option) *zap.Logger {
 	if both, option := checkFormat(options); both {
 		// 格式冲突：不 panic，降级为 console 格式，并通过 stderr 告警
-		fmt.Fprintln(os.Stderr, "[go-logger] WARNING: multiple log formats specified, falling back to console format")
+		_, _ = fmt.Fprintln(os.Stderr, "[go-logger] WARNING: multiple log formats specified, falling back to console format")
 		return consoleLogger(options...)
 	} else {
 		switch option.Name() {

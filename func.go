@@ -27,7 +27,7 @@ func lumberjackCore(conf *LumberjackConfig, encoder zapcore.Encoder, lv zap.Atom
 	}
 	if err != nil {
 		// zap.Open 失败时不 panic，输出 stderr 告警，返回 nil core 由 genLogger 过滤
-		fmt.Fprintf(os.Stderr, "[go-logger] WARNING: lumberjack sink open failed: %v\n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "[go-logger] WARNING: lumberjack sink open failed: %v\n", err)
 		return nil
 	}
 	return zapcore.NewCore(
@@ -46,7 +46,7 @@ func rotateLogCore(conf *RotateLogConfig, encoder zapcore.Encoder, lv zap.Atomic
 	}
 	if err != nil {
 		// zap.Open 失败时不 panic，输出 stderr 告警，返回 nil core 由 genLogger 过滤
-		fmt.Fprintf(os.Stderr, "[go-logger] WARNING: rotatelog sink open failed: %v\n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "[go-logger] WARNING: rotatelog sink open failed: %v\n", err)
 		return nil
 	}
 	return zapcore.NewCore(
@@ -91,14 +91,6 @@ func buildLogger(options []Option, encoderFactory func(zapcore.EncoderConfig) za
 	if len(options) == 0 {
 		options = append(options, WithConsoleOutPut())
 		options = append(options, WithDefaultLogLevel(debugLevel))
-	}
-
-	// 兜底：如果 hasOutput 返回 false，说明 withoutConsole 且无有效 file 输出，
-	// 此时移除 withoutConsoleOutPutKey 以保证至少有 console 输出，避免所有日志被静默丢弃
-	if !hasOutput(options) {
-		options = slices.DeleteFunc(options, func(o Option) bool {
-			return o.Name() == withoutConsoleOutPutKey
-		})
 	}
 
 	if !hasLogLevel(options) {
@@ -180,7 +172,7 @@ func buildLogger(options []Option, encoderFactory func(zapcore.EncoderConfig) za
 
 		// 与问题2 设计原则一致：不 panic、不静默吞掉错误、stderr 告警让开发者可感知
 		if fileCoreCount == 0 {
-			fmt.Fprintln(os.Stderr, "[go-logger] WARNING: WithFileOutPut() is set but no valid WithLumberjack/WithRotateLog configured, file output will be skipped")
+			_, _ = fmt.Fprintln(os.Stderr, "[go-logger] WARNING: WithFileOutPut() is set but no valid WithLumberjack/WithRotateLog configured, file output will be skipped")
 		}
 	}
 
@@ -218,7 +210,7 @@ func genLogger(cores []zapcore.Core, moduleName string, developMode, callerMode 
 	// 当所有 core 都被过滤掉（如 console 被禁用 + 文件 sink 全部打开失败）时，
 	// zapcore.NewTee() 会创建一个 no-op core，所有日志将被静默丢弃。
 	if len(cores) == 0 {
-		fmt.Fprintln(os.Stderr, "[go-logger] WARNING: no valid log output core configured, all logs will be discarded")
+		_, _ = fmt.Fprintln(os.Stderr, "[go-logger] WARNING: no valid log output core configured, all logs will be discarded")
 	}
 
 	core := zapcore.NewTee(cores...)
