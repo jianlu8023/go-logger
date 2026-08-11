@@ -25,6 +25,7 @@ const (
 	consoleOutPutKey        = "consoleOutPut"
 	withoutConsoleOutPutKey = "withoutConsoleOutPut"
 	fileOutPutKey           = "fileOutPut"
+	withoutFileOutPutKey    = "withoutFileOutPut"
 )
 
 // WithDefaultLogLevel 设置日志级别
@@ -77,7 +78,10 @@ func WithCallerSkip(skip int) Option {
 // WithFileOutPut 输出日志到文件
 func WithFileOutPut() Option { return option.NewOption(fileOutPutKey, true) }
 
-// WithOutConsoleOutPut 不输出日志到控制台
+// WithoutFileOutPut 不输出日志到文件（优先级高于 WithFileOutPut）
+func WithoutFileOutPut() Option { return option.NewOption(withoutFileOutPutKey, true) }
+
+// WithOutConsoleOutPut 不输出日志到控制台（优先级高于 WithConsoleOutPut）
 func WithOutConsoleOutPut() Option { return option.NewOption(withoutConsoleOutPutKey, true) }
 
 // WithConsoleOutPut 输出日志到控制台
@@ -145,12 +149,22 @@ func checkFormat(options []Option) (bool, Option) {
 
 func hasOutput(options []Option) bool {
 	optMap := buildOptionMap(options)
-	if _, ok1 := optMap[consoleOutPutKey]; !ok1 {
-		if _, ok2 := optMap[fileOutPutKey]; !ok2 {
-			return false
+
+	// console 输出：默认有效，仅当 withoutConsoleOutPutKey 存在时无效
+	consoleEffective := true
+	if _, without := optMap[withoutConsoleOutPutKey]; without {
+		consoleEffective = false
+	}
+
+	// file 输出：仅当 fileOutPutKey 存在 且 withoutFileOutPutKey 不存在时有效
+	fileEffective := false
+	if _, without := optMap[withoutFileOutPutKey]; !without {
+		if _, with := optMap[fileOutPutKey]; with {
+			fileEffective = true
 		}
 	}
-	return true
+
+	return consoleEffective || fileEffective
 }
 
 func hasLogLevel(options []Option) bool {

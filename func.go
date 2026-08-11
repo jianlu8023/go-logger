@@ -93,8 +93,12 @@ func buildLogger(options []Option, encoderFactory func(zapcore.EncoderConfig) za
 		options = append(options, WithDefaultLogLevel(debugLevel))
 	}
 
+	// 兜底：如果 hasOutput 返回 false，说明 withoutConsole 且无有效 file 输出，
+	// 此时移除 withoutConsoleOutPutKey 以保证至少有 console 输出，避免所有日志被静默丢弃
 	if !hasOutput(options) {
-		options = append(options, WithConsoleOutPut())
+		options = slices.DeleteFunc(options, func(o Option) bool {
+			return o.Name() == withoutConsoleOutPutKey
+		})
 	}
 
 	if !hasLogLevel(options) {
@@ -122,18 +126,25 @@ func buildLogger(options []Option, encoderFactory func(zapcore.EncoderConfig) za
 	}
 
 	// 判断是否有 console 输出
-	// 当 withoutConsoleOutPutKey 存在时，强制不输出 console（优先级高于 consoleOutPutKey）
+	// withoutConsoleOutPutKey 优先级最高：存在则强制不输出 console
+	// 否则默认添加 console 输出（无需显式 WithConsoleOutPut）
 	if _, without := optMap[withoutConsoleOutPutKey]; !without {
-		if _, ok := optMap[consoleOutPutKey]; ok {
-			encoder = encoderFactory(consoleConfig)
-			consoleLv := zap.NewAtomicLevel()
-			consoleLv.SetLevel(getConsoleLogLevel(optMap))
-			cores = append(cores, consoleCore(encoder, consoleLv))
-		}
+		encoder = encoderFactory(consoleConfig)
+		consoleLv := zap.NewAtomicLevel()
+		consoleLv.SetLevel(getConsoleLogLevel(optMap))
+		cores = append(cores, consoleCore(encoder, consoleLv))
 	}
 
 	// 判断是否有 file 输出
-	if _, ok := optMap[fileOutPutKey]; ok {
+	// withoutFileOutPutKey 优先级最高：存在则强制不输出 file（即使同时有 WithFileOutPut）
+	// 否则必须同时有 WithFileOutPut 才进入文件输出分支
+	fileEffective := false
+	if _, without := optMap[withoutFileOutPutKey]; !without {
+		if _, with := optMap[fileOutPutKey]; with {
+			fileEffective = true
+		}
+	}
+	if fileEffective {
 		fileLv := zap.NewAtomicLevel()
 		fileLv.SetLevel(getFileLogLevel(optMap))
 
